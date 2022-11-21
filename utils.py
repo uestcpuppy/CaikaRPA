@@ -74,8 +74,6 @@ if __name__ == '__main__':
         closeButton.Click(y=-50)
     else:
         print ("not found")
-        print ("test")
-        print ("test2")
 
 
 
