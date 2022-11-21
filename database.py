@@ -1,0 +1,360 @@
+import pymysql
+import pandas as pd
+import datetime
+import utils
+import openpyxl
+import config
+import os
+from decimal import *
+
+def getDb():
+    config={
+        "host":"localhost",
+        "user":"root",
+        "password":"chenxi19821220",
+        "database":"caika",
+        "cursorclass": pymysql.cursors.DictCursor
+    }
+    db = pymysql.connect(**config)
+    return db
+
+def getQueryResultAll(sql):
+    print (sql)
+    db = getDb()
+    cursor = db.cursor()
+    cursor.execute(sql)
+    res = cursor.fetchall() #第一次执行
+    cursor.close()
+    db.close()
+    return res
+
+def query(sql):
+    # 1. 创建数据库连接对象
+    result = True
+    con = getDb()
+    try:
+        # 2. 通过连接对象获取游标
+        with con.cursor() as cursor:
+            cursor.execute(sql)
+        # 4. 操作成功提交事务
+        con.commit()
+        return result
+    except Exception as e:
+        print (e)
+        con.rollback()
+        return False
+    finally:
+        # 5. 关闭连接释放资源
+        con.close()
+
+
+def getQueryResultOne(sql):
+    res = getQueryResultAll(sql)
+    if len(res) == 1:
+        return res[0]
+    else:
+        return None
+
+def getSlotList():
+    sql = "SELECT s.*, e.status, e.query_begin_date,e.query_end_date,e.xls_filename,e.screenshot_filename,a.short_name,b.`name` FROM slot as s " \
+          "LEFT JOIN execution as e ON s.execution_id = e.id " \
+          "LEFT JOIN account as a ON s.account_id = a.id " \
+          "LEFT JOIN bank as b ON a.bank_id = b.id order by slot_num asc"
+    res = getQueryResultAll(sql)
+    return res
+
+def getSlotInfo(slotNum):
+    sql = "SELECT s.*,a.*,e.status, e.query_begin_date,e.query_end_date,e.xls_filename,e.screenshot_filename,b.`name`,b.short_name as bank FROM slot as s " \
+          "LEFT JOIN execution as e ON s.execution_id = e.id " \
+          "LEFT JOIN account as a ON s.account_id = a.id " \
+          "LEFT JOIN bank as b ON a.bank_id = b.id where s.slot_num="+slotNum
+    res = getQueryResultOne(sql)
+    return res
+
+def updateExecution(executionId, status="",runEndDatetime="",xlsFilename="",imgFilename=""):
+    sql = "UPDATE execution SET id = id"
+    if status!="":
+        sql = sql + ",status = '"+status+"'"
+    if runEndDatetime!="":
+        sql = sql + ",run_end_datetime= '"+runEndDatetime+"'"
+    if xlsFilename!="":
+        sql = sql + ",xls_filename = '"+xlsFilename+"'"
+    if imgFilename!="":
+        sql = sql + ",screenshot_filename = '"+imgFilename+"'"
+    sql = sql + " WHERE id = "+executionId
+    return query(sql)
+
+def createExecution(slotNum,accountId,queryBeginDate,queryEndDate):
+    runBeginDatetime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    sql = "INSERT INTO `execution` VALUES (NULL,%s,%s,'%s','%s','READY','%s',NULL,'','')"%(slotNum,accountId,queryBeginDate,queryEndDate,runBeginDatetime)
+    res = False
+    # 1. 向execution中插入一条数据 2.更新slot的execution_id
+    con = getDb()
+    try:
+        # 2. 通过连接对象获取游标
+        with con.cursor() as cursor:
+            result = cursor.execute(sql)
+            if result != 1:
+                raise Exception("DB操作出错")
+            else:
+                insertId = con.insert_id()
+                pid = utils.runTask(str(insertId), slotNum, queryBeginDate, queryEndDate)
+                if type(pid) == int and pid>0:
+                    sql2 = "UPDATE slot SET execution_id = " + str(insertId) + ",pid=" + str(pid) + " where slot_num = " + slotNum
+                    result2 = cursor.execute(sql2)
+                    res = (result2==1)
+                else:
+                    raise Exception("创建任务失败!")
+        # 3. 操作成功提交事务
+        con.commit()
+        return res
+    except Exception as e:
+        print (e)
+        con.rollback()
+        return res
+    finally:
+        # 5. 关闭连接释放资源
+        con.close()
+
+def getExecution(executionId):
+    sql = "SELECT e.*, a.short_name as account_name from execution as e, account as a where e.account_id = a.id and e.id = "+executionId
+    return getQueryResultOne(sql)
+
+def getExecutionList(accountId):
+    sql = "SELECT e.*,e.id as execution_id, a.short_name as account_name,b.name as bank_name  from execution as e " \
+          "LEFT JOIN account as a on e.account_id = a.id " \
+          "LEFT JOIN bank as b on a.bank_id = b.id " \
+          "where e.account_id = "+accountId+" order by e.id desc"
+    return getQueryResultAll(sql)
+
+def getAccountInfo(accountId):
+    sql = "SELECT * from account as a,template as t where a.template_id = t.id and a.id = "+accountId
+    return getQueryResultOne(sql)
+
+def getAccountList(companyId):
+    sql = "select * from account where company_id = "+ companyId
+    res = getQueryResultAll(sql)
+    return res
+
+def getDetailListForExport(accountIds, beginDate, endDate):
+    sql = "select d.*,a.short_name,a.account_num,c.`name` as company_name from detail as d " \
+          "LEFT JOIN account as a ON d.account_id = a.id " \
+          "LEFT JOIN company as c ON a.company_id = c.id " \
+          "where  d.account_id in ("+accountIds+") and " \
+          "d.transaction_time between '"+beginDate+" 00:00:00' and '"+endDate+" 23:59:59' order by d.account_id"
+    res = getQueryResultAll(sql)
+    return res
+
+def getDetailListCount(accountId, beginDate, endDate, filter="all"):
+    #filter = income, expense, all
+    condition = ""
+    if filter == "income":
+        condition = "and income>0"
+    elif filter == "expense":
+        condition = "and expense>0"
+    elif filter == "all":
+        condition = ""
+    sql = "select count(*) as count from detail where account_id = '"+ accountId+"' and transaction_time between '"+beginDate+" 00:00:00' and '"+endDate+" 23:59:59' "+condition+" order by id "
+    res = getQueryResultAll(sql)
+    return {"count":res[0]["count"]}
+
+def getDetailList(accountId, beginDate, endDate, pageNum=1, pageSize=10000, filter="all"):
+    #filter = income, expense, all
+    condition = ""
+    if filter == "income":
+        condition = "and income>0"
+    elif filter == "expense":
+        condition = "and expense>0"
+    elif filter == "all":
+        condition = ""
+    offset = (pageNum-1)*pageSize
+    sql = "select * from detail where account_id = '"+ accountId+"' and transaction_time between '"+beginDate+" 00:00:00' and '"+endDate+" 23:59:59' "+condition+" order by id desc limit "+str(offset)+","+str(pageSize)
+    res = getQueryResultAll(sql)
+    return res
+
+def getAccountListAll():
+    sql = "SELECT a.id,a.short_name,a.account_num,c.`name` as company_name from account as a,company as c where a.company_id = c.id order by a.company_id"
+    res = getQueryResultAll(sql)
+    return res
+
+def getCompanyAccountInfo(companyId, beginDate, endDate):
+    accountList = getAccountList(companyId)
+    result = []
+    for account in accountList:
+        #期初余额, 期末余额, 累计支出, 累计收入
+        accountResult = account
+        accountResult["first_balance"] = 0
+        accountResult["last_balance"] = 0
+        detailList = getDetailList(str(account["id"]), beginDate, endDate)
+        if len(detailList) > 0:
+            accountResult["first_balance"] = detailList[0]["balance"] - detailList[0]["income"] + detailList[0]["expense"]
+            accountResult["last_balance"] = detailList[-1]["balance"]
+        total_income = 0
+        total_expense = 0
+        for detail in detailList:
+            total_income = total_income + detail["income"]
+            total_expense = total_expense + detail["expense"]
+        accountResult["total_income"] = total_income
+        accountResult["total_expense"] = total_expense
+        result.append(accountResult)
+    return result
+
+def createDetailList(detailList):
+    # 1. 创建数据库连接对象
+    con = getDb()
+    try:
+        # 2. 通过连接对象获取游标
+        with con.cursor() as cursor:
+            for detailDict in detailList:
+                # 3. 通过游标执行SQL并获得执行结果
+                sql = "INSERT INTO `detail` VALUES (NULL,%s,'%s',%s,%s,%s,'%s','%s','%s','%s','%s')"%(detailDict["account_id"],
+                                                                                          detailDict["transaction_time"],
+                                                                                          detailDict["income"],
+                                                                                          detailDict["expense"],
+                                                                                          detailDict["balance"],
+                                                                                          detailDict["customer_account_name"],
+                                                                                          detailDict["customer_account_num"],
+                                                                                          detailDict["customer_bank_name"],
+                                                                                          detailDict["transaction_id"],
+                                                                                          detailDict["summary"])
+                result = cursor.execute(sql)
+                # if not (result == 1):
+                #     raise Exception("插入detail出错")
+        # 4. 操作成功提交事务
+        con.commit()
+        return True, str(len(detailList))
+    except Exception as e:
+        con.rollback()
+        return False, str(e)
+    finally:
+        # 5. 关闭连接释放资源
+        con.close()
+
+def createUniqueDetailList(detailList):
+    existDataCount = 0
+    # 1. 创建数据库连接对象
+    con = getDb()
+    # 2. 通过连接对象获取游标
+    with con.cursor() as cursor:
+        for detailDict in detailList:
+            try:
+                # 3. 通过游标执行SQL并获得执行结果
+                sql = "INSERT INTO `detail` VALUES (NULL,%s,'%s',%s,%s,%s,'%s','%s','%s','%s','%s')"%(detailDict["account_id"],
+                                                                                      detailDict["transaction_time"],
+                                                                                      detailDict["income"],
+                                                                                      detailDict["expense"],
+                                                                                      detailDict["balance"],
+                                                                                      detailDict["customer_account_name"],
+                                                                                      detailDict["customer_account_num"],
+                                                                                      detailDict["customer_bank_name"],
+                                                                                      detailDict["transaction_id"],
+                                                                                      detailDict["summary"])
+                result = cursor.execute(sql)
+                # 4. 操作成功提交事务
+                con.commit()
+            except Exception as e:
+                con.rollback()
+                if str(e).find("去重") != -1:
+                    existDataCount = existDataCount +1
+    # 5. 关闭连接释放资源
+    con.close()
+    return True, str(len(detailList)-existDataCount)
+
+def exportDetailXls(detailList):
+    wb = openpyxl.load_workbook("template.xlsx")
+    sheet1 = wb['导出信息']
+    lastAccountNum = ""
+    for i in detailList:
+        income = ""
+        expense = ""
+        accountNum = ""
+        companyName = ""
+        bankShortName = ""
+        if i["income"] >0:
+            income = i["income"]
+        if i["expense"] >0:
+            expense = i["expense"]
+        if lastAccountNum != i["account_num"]:
+            accountNum = i["account_num"]
+            bankShortName = i["short_name"]
+            companyName = i["company_name"]
+            lastAccountNum = accountNum
+        sheet1.append([companyName,"",accountNum,bankShortName,"","", str(i["transaction_time"])[0:10],"","","","", income,expense])
+    filePath = config.DOWNLOAD_TEMP_DIR + "data.xlsx"
+    if os.path.exists(filePath):
+        os.remove(filePath)
+    wb.save(config.DOWNLOAD_TEMP_DIR + "data.xlsx")
+    return os.path.exists(filePath)
+
+def importBankXls(account_id, filePath):
+
+    accountInfo = getAccountInfo(account_id)
+
+    try:
+        df = pd.read_excel(filePath, accountInfo["sheet_name"], accountInfo["skip_firstrows"],keep_default_na=False)
+    except Exception as e:
+        return False, "文件未找到"
+    # 行索引
+    newInexValues = df.index.values[0:len(df.index.values)-accountInfo["skip_lastrows"]]
+    #  行数 （不包含表头，且一下均如此）
+    # print(len(newInexValues))
+    detailList = []
+    for i in newInexValues:
+        rowData = df.loc[i].to_list()
+        detailDict = {}
+        detailDict["account_id"] = account_id
+        rawDateTime = rowData[accountInfo["transaction_time"]-1]
+        dt = datetime.datetime.strptime(rawDateTime, accountInfo["time_format"])
+        detailDict["transaction_time"] = dt.strftime("%Y-%m-%d %H:%M:%S")
+        detailDict["income"] = rowData[accountInfo["income"]-1]
+        detailDict["expense"] = rowData[accountInfo["expense"]-1]
+        detailDict["balance"] = rowData[accountInfo["balance"]-1]
+        detailDict["customer_account_name"] = rowData[accountInfo["customer_account_name"]-1]
+        detailDict["customer_account_num"] = rowData[accountInfo["customer_account_num"]-1]
+        detailDict["customer_bank_name"] = rowData[accountInfo["customer_bank_name"]-1]
+        detailDict["transaction_id"] = rowData[accountInfo["transaction_id"]-1]
+        detailDict["summary"] = rowData[accountInfo["summary"]-1]
+        detailList.append(detailDict)
+    return createUniqueDetailList(detailList)
+    #  列数
+    # print(len(df.columns.values))
+    #  列索引
+    # print(df.columns.values)
+
+
+if __name__ == '__main__':
+    # res = getDetailList("1", "2022-08-01", "2022-08-31")
+    # getCompanyAccountInfo("1", "2022-08-01", "2022-08-31")
+    # print (res)
+    slotNum = "1"
+    print (getSlotInfo(slotNum))
+    # accountId = "1"
+    # queryBeginDate = "2022-01-01"
+    # queryEndDate = "2022-01-01"
+    # status = "READY"
+    # s = createExecution(str(slotNum),str(accountId),queryBeginDate,queryEndDate)
+    # print (s)
+
+    # s = updateExecution("121", status, runBeginDatetime, "TEST", "TEST2")
+    # print(s)
+
+    # s = createExecution(slotNum, accountId, queryBeginDate, queryEndDate, status, "")
+    # print(s)
+
+    # getXlsDataList(filePath, "Sheet1", 2, 2)
+    # print (config.BankImportTemplate[0])
+    # detailDict = {}
+    # detailDict["account_id"] = 1
+    # detailDict["transaction_time"] = "2022-01-01 00:00:00"
+    # detailDict["income"] = 1
+    # detailDict["expense"] = 1
+    # detailDict["balance"] = 20
+    # detailDict["customer_account_name"] = "test"
+    # detailDict["customer_account_num"] = "test"
+    # detailDict["customer_bank_name"] = "test"
+    # detailDict["transaction_id"] = "test"
+    # detailDict["summary"] = "test"
+    # templateConfig = config.getBankImportTemplate(1)
+    # print (importBankXls(1, filePath, templateConfig))
+
+

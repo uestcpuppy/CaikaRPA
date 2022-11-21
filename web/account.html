@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pure HTML CSS Admin Template</title>
+    <style>
+
+#detailDiv{
+  max-width: 90%
+}
+
+  </style>
+  <script type="text/javascript"src="jquery.min.js"></script>
+  <script type="text/javascript" src="jquery.modal.min.js"></script>
+  <script type="text/javascript" src="jquery.pagination.js"></script>
+  <script type="text/javascript" src="common.js"></script>
+  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="jquery.modal.min.css" />
+  <link rel="stylesheet" href="pagination.css" />
+  </head>
+<body>
+<div id="detailDiv" class="modal" >
+  <table id="detailTb" ></table>
+  <div id="Pagination" class="pagination"><!-- 这里显示分页 --></div>
+</div>
+<div>
+  <div>
+    <form>
+      <span>收付组织</span>
+      <select id="company">
+      </select>
+      <span>流水日期</span>
+      <input type="date" id="beginDate" />
+      <input type="date" id="endDate" />
+      <input type="button" id="query" value="查询"/>
+      <span id="info"></span>
+    </form>
+    </div>
+  </div>
+  <table id="tb"></table>
+  </body>
+    <script>
+
+        $(function() {
+
+            $.ajaxSettings.async = false;
+
+            function initPage()
+            {
+                $.getJSON("/getCompanyList",function(data){
+                    str = ""
+                    $.each(data, function (n, value) {
+                        str = str + "<option value="+value["id"]+">"+value["name"]+"</option>"
+                    });
+                    $("#company").append(str);
+                });
+
+                $("#beginDate").val(formatDate(-30))
+                $("#endDate").val(formatDate(-1))
+
+            }
+
+            function loadTable()
+            {
+                CompanyId = $("option:selected").val()
+                BeginDate = $("#beginDate").val()
+                EndDate = $("#endDate").val()
+                str = "<tr><th>账户ID</th><th>账户简称</th><th>期初余额</th><th>本期收入</th><th>本期支出</th><th>期末余额</th></tr>"
+                $("#tb").empty()
+                $("#tb").append(str)
+                var final_first_balance = 0;
+                var final_income = 0;
+                var final_expense = 0;
+                var final_last_balance = 0;
+
+                $.getJSON("/getCompanyAccountInfo&CompanyId="+CompanyId+"&BeginDate="+BeginDate+"&EndDate="+EndDate,function(data){
+                    $.each(data, function (n, value) {
+                        final_first_balance = final_first_balance + value["first_balance"];
+                        final_income = final_income + value["total_income"];
+                        final_expense = final_expense + value["total_expense"];
+                        final_last_balance = final_last_balance + value["last_balance"];
+
+                        $("#tb").append("<tr>\
+                        <td>"+value["id"]+"</td>\
+                        <td>"+value["short_name"]+"</td>\
+                        <td>"+value["first_balance"].toFixed(2)+"</td>\
+                        <td><a href='#' account_id='"+value["id"]+"' account_name='"+value["short_name"]+"' name='incomeDetail'>"+value["total_income"].toFixed(2)+"</a></td>\
+                        <td><a href='#' account_id='"+value["id"]+"' account_name='"+value["short_name"]+"' name='expenseDetail'>"+value["total_expense"].toFixed(2)+"</a></td>\
+                        <td>"+value["last_balance"].toFixed(2)+"</td>\
+                        </tr>");
+                    });
+                });
+                //汇总
+                $("#tb").append("<tr>\
+                 <td></td>\
+                 <td>总计</td>\
+                 <td>"+final_first_balance.toFixed(2)+"</td>\
+                 <td>"+final_income.toFixed(2)+"</td>\
+                 <td>"+final_expense.toFixed(2)+"</td>\
+                 <td>"+final_last_balance.toFixed(2)+"</td>\
+                 </tr>");
+
+            }
+
+            $("#query").click(function(){
+                CompanyId = $("option:selected").val()
+                BeginDate = $("#beginDate").val()
+                EndDate = $("#endDate").val()
+                if(CompanyId==""||BeginDate==""||EndDate==""){
+                    $("#info").text("【请填写完整】").show().delay(3000).fadeOut();
+                    return
+                }
+                loadTable();
+            })
+
+            initPage()
+            loadTable()
+
+            $("[name=incomeDetail]").click(function(){
+              filter = "income";
+              accountId = $(this).attr("account_id")
+              currentAccountName = $(this).attr("account_name")
+              initPagination(accountId)
+              $('#detailDiv').modal({clickClose: true,escapeClose: true});
+            })
+
+            $("[name=expenseDetail]").click(function(){
+              filter = "expense";
+              accountId = $(this).attr("account_id")
+              currentAccountName = $(this).attr("account_name")
+              initPagination(accountId)
+              $('#detailDiv').modal({clickClose: true,escapeClose: true});
+            })
+
+            var pageSize = 15;
+            var dataCount = 0;
+            var AccountId = 0;
+            var currentAccountName = "";
+            var filter = "";
+            //回调函数的作用是显示对应分页的列表项内容
+            //回调函数在用户每次点击分页链接的时候执行
+            //参数page_index{int整型}表示当前的索引页
+            function initPagination(accountId) {
+                AccountId = accountId
+                BeginDate = $("#beginDate").val()
+                EndDate = $("#endDate").val()
+                //设定翻页
+                $.getJSON("/getDetailCount&filter="+filter+"&AccountId="+AccountId+"&BeginDate="+BeginDate+"&EndDate="+EndDate,function(data){
+                    dataCount = data["count"];
+                    num_entries = Math.ceil(data["count"]/pageSize);
+                    // 创建分页
+                    $("#Pagination").pagination(num_entries, {
+                        num_edge_entries: 1, //边缘页数
+                        num_display_entries: 4, //主体页数
+                        callback: pageselectCallback,
+                        items_per_page:1 //每页显示1项
+                    });
+                });
+             }
+
+            function pageselectCallback(page_index, jq){
+
+                pageNum = page_index + 1
+
+                element = null;
+                if($("div.jquery-modal.blocker.current").length ==1)
+                {
+                  element = $("div.jquery-modal.blocker.current").find("#detailTb");
+                }else{
+                  element = $("#detailTb");
+                }
+
+                str = "<tr><th>交易日期</th><th>我方账号</th><th>收入金额</th><th>支出金额</th><th>对方开户银行</th><th>对方账户</th><th>对方账号</th><th>摘要</th></tr>"
+                element.empty().append(str)
+
+                //查询当页数据
+                $.getJSON("/getDetailList&filter="+filter+"&AccountId="+AccountId+"&BeginDate="+BeginDate+"&EndDate="+EndDate+"&PageNum="+pageNum+"&PageSize="+pageSize,function(data){
+                    $.each(data, function (n, value) {
+                        newSummary = Substr(value["summary"], 0, 20)
+                        if(newSummary != value["summary"])
+                           newSummary = newSummary+"..."
+
+                        element.append("<tr>\
+                        <td>"+value["transaction_time"]+"</td>\
+                        <td>"+currentAccountName+"</td>\
+                        <td>"+value["income"]+"</td>\
+                        <td>"+value["expense"]+"</td>\
+                        <td>"+value["customer_bank_name"]+"</td>\
+                        <td>"+value["customer_account_name"]+"</td>\
+                        <td>"+value["customer_account_num"]+"</td>\
+                        <td><div class=\"tooltip\">"+newSummary+"<span class=\"tooltiptext\">"+value["summary"]+"</span></div></td>\
+                        </tr>");
+
+                    });
+                });
+            }
+
+        });
+    </script>
+</html>

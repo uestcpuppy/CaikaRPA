@@ -1,0 +1,79 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"><html>
+<title>Directory listing for /</title>
+  <head>
+<script type="text/javascript"src="jquery.min.js"></script>
+  </head>
+<body>
+<h2>导入银行流水</h2>
+<h5>提示:重复数据将不会被导入</h5>
+
+  <div>
+    <form>
+      <span>收付组织</span>
+      <select id="company">
+      </select>
+      <span>银行账号</span>
+      <select id="account">
+      </select>
+      <span id="info"></span>
+    </form>
+    </div>
+
+<form ENCTYPE="multipart/form-data" method="post" action=""><input name="file" type="file"/>
+    <input id="import" type="button" value="导入流水"/>
+</form>
+</body>
+
+    <script>
+
+        $(function() {
+
+            var currentCompanyId = 0
+            var currentCompanyName = ""
+
+            $.ajaxSettings.async = false;
+
+            function initAccount()
+            {
+                $("#account").empty()
+                $.getJSON("/getAccountList&CompanyId="+currentCompanyId,function(data){
+                    str = ""
+                    $.each(data, function (n, value) {
+                        str = str + "<option value="+value["id"]+">"+value["short_name"]+"</option>"
+                    });
+                    $("#account").append(str);
+                });
+            }
+
+            function initPage()
+            {
+                $.getJSON("/getCompanyList",function(data){
+                    str = ""
+                    $.each(data, function (n, value) {
+                        if(n==0){
+                            currentCompanyId = value["id"]
+                        }
+                        str = str + "<option value="+value["id"]+">"+value["name"]+"</option>"
+                    });
+                    $("#company").append(str);
+                });
+                initAccount()
+            }
+
+            $("#company").change(function(){
+                currentCompanyId = $(this).val()
+                initAccount()
+            })
+
+            $("#import").click(function(){
+                AccountId = $("#account option:selected").val()
+                $("form").attr("action", "uploadFile&AccountId="+AccountId);
+                $("form").submit()
+            })
+
+            initPage()
+
+        });
+    </script>
+</html>

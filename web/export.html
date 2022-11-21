@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pure HTML CSS Admin Template</title>
+    <style>
+
+#tb{
+  max-width: 70%
+}
+
+  </style>
+  <script type="text/javascript"src="jquery.min.js"></script>
+  <script type="text/javascript" src="jquery.modal.min.js"></script>
+  <script type="text/javascript" src="jquery.pagination.js"></script>
+  <script type="text/javascript" src="common.js"></script>
+  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="jquery.modal.min.css" />
+  <link rel="stylesheet" href="pagination.css" />
+  </head>
+<body>
+<div>
+  <div>
+    <form>
+      <span>流水日期</span>
+      <input type="date" id="beginDate" />
+      <input type="date" id="endDate" />
+      <input type="button" id="export" value="导出"/>
+      <span id="info" class="info"></span>
+    </form>
+    </div>
+  </div>
+  <table id="tb"></table>
+
+  <div style="display:none;">
+    <a id="download" download="data.xlsx" href="">下载</a>
+  </div>
+  </body>
+    <script>
+
+        $(function() {
+
+            $.ajaxSettings.async = false;
+
+            function loadTable()
+            {
+                $("#beginDate").val(formatDate(-30))
+                $("#endDate").val(formatDate(-1))
+
+                str = "<tr><th>账户ID</th><th>收付组织</th><th>账户简称</th><th>账号</th><th><input type='checkbox' id='cb_all' checked='true' />全选</th></tr>"
+                $("#tb").empty()
+                $("#tb").append(str)
+                $.getJSON("/getAllAccountList",function(data){
+                    $.each(data, function (n, value) {
+                        $("#tb").append("<tr>\
+                        <td>"+value["id"]+"</td>\
+                        <td>"+value["company_name"]+"</td>\
+                        <td>"+value["short_name"]+"</td>\
+                        <td>"+value["account_num"]+"</td>\
+                        <td><input type='checkbox' id='"+value["id"]+"' checked='true' /></td>\
+                        </tr>");
+                    });
+                });
+            }
+
+            loadTable()
+
+            $("#cb_all").click(function(){
+                $("input[type=checkbox]").prop("checked",$(this).prop("checked"))
+            })
+
+            $("#export").click(function(){
+                BeginDate = $("#beginDate").val()
+                EndDate = $("#endDate").val()
+                var AccountIds = new Array()
+               $("input[type=checkbox]").each(function(i){
+                   if ($(this).prop("checked")&&$(this).attr("id")!="cb_all")
+                   {
+                      AccountIds.push($(this).attr("id"))
+                   }
+               })
+                if(AccountIds.toString()==""||BeginDate==""||EndDate==""){
+                    $("#info").text("请填写完整").show().delay(3000).fadeOut();
+                    return
+                }
+                $("#download").attr("href", "/getDetailExport&AccountIds="+AccountIds.toString()+"&BeginDate="+BeginDate+"&EndDate="+EndDate);
+                $("#download")[0].click()
+
+            })
+
+        });
+    </script>
+</html>

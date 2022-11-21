@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pure HTML CSS Admin Template</title>
+    <style>
+
+    textarea {
+            display: block;
+            min-width:1000px;
+            height:600px;
+            font-size: 15px;
+            color: #000;
+            line-height: 24px;
+            outline: none;
+            border: none;
+            resize: none;
+    }
+
+    </style>
+  <script type="text/javascript"src="jquery.min.js"></script>
+  </head>
+  <body>
+  <div>
+    <form>
+      <input type="button" id="reload" value="刷新"/>
+    </form>
+    </div>
+
+    <div>
+    <form class="form">
+    <textarea id="log"></textarea>
+    </form>
+    </div>
+
+  </body>
+    <script>
+
+        $(function() {
+
+                function loadPage()
+                {
+                  $.getJSON("/getLastLog",function(data){
+                    $("#log").text(data)
+                    var show = document.getElementById("log");
+                    show.scrollTop = show.scrollHeight;
+                  });
+                }
+
+                 $("#reload").click(function(){
+                      loadPage();
+                 })
+
+                 loadPage();
+        });
+    </script>
+</html>

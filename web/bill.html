@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pure HTML CSS Admin Template</title>
+<style>
+
+#executionDiv{
+  max-width: 80%
+}
+
+</style>
+  <script type="text/javascript"src="jquery.min.js"></script>
+  <script type="text/javascript" src="jquery.modal.min.js"></script>
+  <script type="text/javascript" src="jquery.pagination.js"></script>
+  <script type="text/javascript" src="common.js"></script>
+  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="jquery.modal.min.css" />
+  <link rel="stylesheet" href="pagination.css" />
+</head>
+<body>
+<div id="tips" class="modal"></div>
+<div id="tips2" class="modal"></div>
+
+<div id="executionDiv" class="modal" >
+  <table id="executionTb" ></table>
+  <div id="Pagination" class="pagination"><!-- 这里显示分页 --></div>
+</div>
+<div>
+    <form>
+      <input type="button" id="selectAll" value="全选"/>
+      <input type="button" id="cancelAll" value="全不选"/>
+      <input type="button" name="dateBtn" duration="0" value="今日"/>
+      <input type="button" name="dateBtn" duration="7" value="最近7日"/>
+      <input type="button" name="dateBtn" duration="30" value="最近30日"/>
+      <input type="button" id="resetAll" value="清空日期"/>
+      <input type="date" id="beginDate" />
+      <input type="date" id="endDate" />
+      <input type="button" id="setDate" value="指定日期"/>
+      <input type="button" id="run" value="开始运行"/>
+      <input type="button" id="import" value="导入流水"/>
+      <span id="usb"></span>
+      <span id="info" class="info"></span>
+    </form>
+    </div>
+
+<table id="tb"></table>
+</body>
+    <script>
+    var isStopAll = false;
+
+        function importExecution(executionId)
+        {
+               if(confirm("确定要批量导入银行流水么?"))
+               {
+                  $("#tips").empty().append("<h4>请稍后...</h4>")
+                  $('#tips').modal({
+                      escapeClose: false,
+                      clickClose: false,
+                      showClose: false
+                    });
+
+                $.getJSON("/importBankXls&executionIds="+executionId,function(data){
+                    $("#tips").empty()
+                    $.each(data, function(n,value){
+                        str = ""
+                        if(value["result"])
+                            str = value["account_name"] + ":成功导入"+str+value["msg"]+"条数据"
+                        else
+                            str = value["account_name"] + ":导入失败,"+str+value["msg"]
+                        $("#tips").append("<h4>"+str+"</h4>")
+                    })
+                    $('#tips').modal({clickClose: true,escapeClose: true});
+                     //$.modal.close();
+                   });
+               }
+        }
+
+        $(function() {
+            $.ajaxSettings.async = false;
+            var currentSlotNum = 0;
+            var currentTimer = 0
+            var toRunSlotArray = new Array()
+            var taskStatusMap = new Map([[null, "【未知】"],["READY","【准备执行】"],["RUNNING","【执行中】"],["FINISHED","【执行成功】"],["FAILED","【执行失败】"]])
+
+
+            function getXlsDownloadStr(data)
+            {
+                xlsDownloadStr = "-"
+                if(data["xls_filename"] != ""&&data["xls_filename"] != null)
+                {
+                  xlsDownloadStr = "<a href='download/"+data["execution_id"]+"/"+data["xls_filename"]+"'>下载</a>"
+                }
+                return xlsDownloadStr;
+            }
+            function getImgDownloadStr(data)
+            {
+                imgDownloadStr = "-"
+                if(data["screenshot_filename"] != ""&&data["screenshot_filename"] != null)
+                {
+                  imgDownloadStr = "<a href='download/"+data["execution_id"]+"/"+data["screenshot_filename"]+"'>下载</a>"
+                }
+                return imgDownloadStr;
+            }
+
+            function info(msg)
+            {
+              $("#info").text(msg).show().delay(1000).fadeOut();
+            }
+
+            function loadTable()
+            {
+                $("#tb").empty()
+                $.getJSON("/getSlotList",function(data){
+                $("#tb").append("<tr><th>选择</th><th>端口</th><th>账户</th><th>银行</th><th>开始日期</th><th>结束日期</th><th>执行状态</th><th>银行流水</th><th>屏幕截图</th><th>执行记录</th></tr>")
+
+                    $.each(data, function (n, value) {
+                        i = n+1
+                        $("#tb").append("<tr>\
+                        <td><input type='checkbox' id='cb_"+i+"' checked='true' executionId='"+value["execution_id"]+"' /></td>\
+                        <td>"+i+"</td><td>"+value["short_name"]+"</td>\
+                        <td>"+value["name"]+"</td>\
+                        <td><input type='date' id='begin_"+i+"' value="+value["query_begin_date"]+"></td>\
+                        <td><input type='date' id='end_"+i+"' value="+value["query_end_date"]+"></td>\
+                        <td><span id='span_"+i+"' >"+taskStatusMap.get(value["status"])+"</span></td>\
+                        <td id='bill_download_"+i+"'>"+getXlsDownloadStr(value)+"</td>\
+                        <td id='photo_download_"+i+"'>"+getImgDownloadStr(value)+"</td>\
+                        <td><a href='#' account_id='"+value["account_id"]+"' name='view'>查看</a></td>\
+                        </tr>");
+                        if(value["status"]=="READY"||value["status"]=="RUNNING")
+                        {
+                            currentSlotNum = i;
+                            toRunSlotArray.push(currentSlotNum)
+                            //创建定时器
+                            currentTimer = setInterval(taskTimer, 2000)
+                            $('#tips2').modal({
+                                escapeClose: false,
+                                clickClose: false,
+                                showClose: false
+                            });
+                        }
+                    });
+                });
+            }
+            $("#import").click(function(){
+               $.ajaxSettings.async = true;
+               var importExecutionIds = new Array()
+               var emptyExecutionIds = new Array()
+               $("input[type=checkbox]").each(function(i){
+                   if ($(this).prop("checked"))
+                   {
+                    n = i + 1
+                    executionId = $(this).attr("executionId")
+                    if($("#bill_download_"+n).text().length > 1)
+                    {
+                      importExecutionIds.push(executionId)
+                    }
+                    else
+                      emptyExecutionIds.push(executionId)
+                   }
+               })
+               if(emptyExecutionIds.length >0)
+                 info("包含无法下载的银行流水")
+               else if(importExecutionIds.length ==0)
+                 info("没有可导入的银行流水文件")
+               else if(confirm("确定要批量导入银行流水么?"))
+               {
+                  $("#tips").empty().append("<h4>请稍后...</h4>")
+                  $('#tips').modal({
+                      escapeClose: false,
+                      clickClose: false,
+                      showClose: false
+                    });
+
+                $.getJSON("/importBankXls&executionIds="+importExecutionIds.toString(),function(data){
+                    $("#tips").empty()
+                    $.each(data, function(n,value){
+                        str = ""
+                        if(value["result"])
+                            str = value["account_name"] + ":成功导入"+str+value["msg"]+"条数据"
+                        else
+                            str = value["account_name"] + ":导入失败,"+str+value["msg"]
+                        $("#tips").append("<h4>"+str+"</h4>")
+                    })
+                    $('#tips').modal({clickClose: true,escapeClose: true});
+                     //$.modal.close();
+                   });
+               }
+            })
+
+            $("#selectAll").click(function(){
+                $("input[type=checkbox]").prop("checked",true)
+            });
+
+            $("#cancelAll").click(function(){
+                $("input[type=checkbox]").prop("checked",false)
+            });
+
+            $("[name=dateBtn]").click(function(){
+              duration = $(this).attr("duration")
+              duration = -parseInt(duration)
+              $("input[type=checkbox]").each(function(i){
+                if ($(this).prop("checked")){
+                  $("#begin_"+(i+1)).val(formatDate(duration))
+                  $("#end_"+(i+1)).val(formatDate(0))
+                   }
+              });
+            })
+            $("#resetAll").click(function(){
+                $("input[type=checkbox]").each(function(i){
+                  $("#begin_"+(i+1)).val("")
+                  $("#end_"+(i+1)).val("")
+                });
+            });
+            $("#setDate").click(function(){
+                $("input[type=checkbox]").each(function(i){
+                if ($(this).prop("checked")){
+                  $("#begin_"+(i+1)).val($("#beginDate").val())
+                  $("#end_"+(i+1)).val($("#endDate").val())
+                   }
+                });
+            });
+
+            function isDateNotEmpty()
+            {
+              var hasDateEmpty = false;
+              $("input[type=checkbox]").each(function(i){
+                if ($(this).prop("checked")){
+                     if($("#begin_"+(i+1)).val()=="" || $("#end_"+(i+1)).val()=="")
+                     {
+                       hasDateEmpty = true
+                     }
+                   }
+                });
+              return !hasDateEmpty;
+            }
+
+            $("#run").click(function(){
+              isStopAll = false;
+              var isUsbHubWorking = false
+              $.getJSON("/getUsbHubStatus",function(data){
+                   isUsbHubWorking = data["result"]
+              });
+              if(!isUsbHubWorking)
+              {
+                info("USBHub未连接")
+                return
+              }
+              if (toRunSlotArray.length != 0)
+              {
+                info("存在未执行完成的任务")
+                return;
+              }
+              if(!confirm("确定自动下载银行流水?")) return;
+              if(!isDateNotEmpty()){
+                  info("起止日期不能为空")
+                  return;
+              }
+              //执行队列
+              toRunSlotArray = []
+              clearInterval(currentTimer)
+                $("input[type=checkbox]").each(function(i){
+                 if ($(this).prop("checked")){
+                        toRunSlotArray.push(i+1)
+                      }
+                 });
+              currentSlotNum = 0;
+              //创建定时器
+              currentTimer = setInterval(taskTimer, 2000)
+              $('#tips2').modal({
+                  escapeClose: false,
+                  clickClose: false,
+                  showClose: false
+              });
+            });
+
+            function execNewTask()
+            {
+                //取列表中第一个SlotNum执行
+                currentSlotNum = toRunSlotArray[0];
+                beginDate = $("#begin_"+currentSlotNum).val()
+                endDate = $("#end_"+currentSlotNum).val()
+                $.getJSON("/runTask&slotNum="+currentSlotNum+"&beginDate="+beginDate+"&endDate="+endDate,function(data){
+                  if(data["result"])
+                      info("端口"+currentSlotNum+":创建任务成功")
+                  else
+                      info("端口"+currentSlotNum+":创建任务失败")
+                });
+            }
+
+            function taskTimer()
+            {
+               //第一次执行
+               if(currentSlotNum ==0)
+               {
+                  execNewTask();
+                  return;
+               }
+
+              if(isStopAll)
+              {
+                $.getJSON("/stopTask&slotNum="+currentSlotNum,function(data){
+                  if(data["result"])
+                    info("端口"+currentSlotNum+"终止执行成功")
+                  else
+                    info("端口"+currentSlotNum+"终止执行失败")
+                 })
+                 toRunSlotArray = toRunSlotArray.slice(0, 1);
+              }
+
+               $.getJSON("/getSlotInfo&slotNum="+currentSlotNum,function(data){
+                   info("端口"+currentSlotNum+":"+taskStatusMap.get(data["status"]))
+                   //更新页面
+                   $("#span_"+currentSlotNum).text(taskStatusMap.get(data["status"]))
+                   $("#cb_"+currentSlotNum).attr("executionId", data["execution_id"])
+                   $("#bill_download_"+currentSlotNum).html(getXlsDownloadStr(data))
+                   $("#photo_download_"+currentSlotNum).html(getImgDownloadStr(data))
+
+                   if (data["status"]=="FINISHED"||data["status"]=="FAILED")
+                   {
+                      toRunSlotArray.shift()
+                      if(toRunSlotArray.length ==0)
+                      {
+                         info("待执行任务为空,定时器已关闭")
+                         clearInterval(currentTimer)
+                         $.modal.close();
+                      }else{
+                         execNewTask();
+                      }
+                   }
+               });
+            }
+
+            $("#tips2").append("<h4>处理中, 请勿关闭浏览器窗口, 如需停止点击<button id='stop'>终止执行</button></h4>")
+            $("#stop").click(function(){
+              isStopAll = true;
+            })
+
+            loadTable();
+
+            $("[name=view]").click(function(){
+              accountId = $(this).attr("account_id")
+              initPagination(accountId)
+              $('#executionDiv').modal({clickClose: true,escapeClose: true});
+            })
+
+            $("input[type=checkbox]").click(function(i){
+                $(this).prop("checked", $(this).prop("checked"))
+            });
+
+            var pageSize = 15;
+            var executionList = []
+
+            //回调函数的作用是显示对应分页的列表项内容
+            //回调函数在用户每次点击分页链接的时候执行
+            //参数page_index{int整型}表示当前的索引页
+            function initPagination(accountId) {
+                AccountId = $("#account option:selected").val()
+                BeginDate = $("#beginDate").val()
+                EndDate = $("#endDate").val()
+                //设定翻页
+                $.getJSON("/getExecutionList&accountId="+accountId,function(data){
+                    count = data.length
+                    executionList = data
+                    num_entries = Math.ceil(count/pageSize);
+                    // 创建分页
+                    $("#Pagination").pagination(num_entries, {
+                        num_edge_entries: 1, //边缘页数
+                        num_display_entries: 4, //主体页数
+                        callback: pageselectCallback,
+                        items_per_page:1 //每页显示1项
+                    });
+                });
+             }
+
+            function pageselectCallback(page_index, jq){
+
+                pageNum = page_index + 1
+                element = null;
+                if($("div.jquery-modal.blocker.current").length ==1)
+                {
+                  element = $("div.jquery-modal.blocker.current").find("#executionTb");
+                }else{
+                  element = $("#executionTb");
+                }
+
+                beginIndex = (pageNum-1)*pageSize;
+                endIndex = pageNum*pageSize-1
+                if(endIndex>executionList.length-1)
+                  endIndex = executionList.length-1;
+
+                element.empty().append("<tr><th>批次ID</th><th>账户</th><th>银行</th><th>查询日期</th><th>执行开始</th><th>执行结束</th><th>执行状态</th><th>银行流水</th><th>屏幕截图</th><th>操作</th></tr>")
+
+                for (var i=beginIndex;i<=endIndex;i++)
+                {
+
+                        value = executionList[i]
+                        beginStr = ""
+                        endStr = ""
+                        if(value["run_begin_datetime"] != null) beginStr = value["run_begin_datetime"];
+                        if(value["run_end_datetime"] != null) endStr = value["run_end_datetime"];
+                        element.append("<tr>\
+                        <td>"+value["id"]+"</td><td>"+value["account_name"]+"</td>\
+                        <td>"+value["bank_name"]+"</td>\
+                        <td>"+value["query_begin_date"]+"至"+value["query_end_date"]+"</td>\
+                        <td>"+beginStr+"</td>\
+                        <td>"+endStr+"</td>\
+                        <td width='150'><span>"+taskStatusMap.get(value["status"])+"</span></td>\
+                        <td width='100'>"+getXlsDownloadStr(value)+"</td>\
+                        <td width='100'>"+getImgDownloadStr(value)+"</td>\
+                        <td width='100'><a href='javascript:importExecution("+value["id"]+")'>导入流水</a></td>\
+                        </tr>");
+
+                }
+                return false;
+            }
+
+
+
+        });
+    </script>
+</html>

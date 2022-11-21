@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pure HTML CSS Admin Template</title>
+    <style>
+      #tb
+      {
+        width:300px;
+      }
+      #tb td,#tb th
+      {
+        height:10px
+        padding: 0px
+      }
+    </style>
+  <script type="text/javascript"src="jquery.min.js"></script>
+  </head>
+  <body>
+  <div>
+    <form>
+      <input type="button" id="refresh" value="刷新"/>
+      <span id="usb"></span>
+    </form>
+      <table id="tb"></table>
+  </div>
+
+  </body>
+    <script>
+        $(function() {
+
+            var isConnected = false;
+            var selectedRadio = 0;
+            $.ajaxSettings.async = false;
+
+            function checkUsbStatus(){
+                $.getJSON("/getUsbHubStatus",function(data){
+                   if(data["result"])
+                   {
+                      $("#usb").text("USBHub【已连接】")
+                      isConnected = true;
+                   }else{
+                      $("#usb").text("USBHub【未连接】")
+                      isConnected = false;
+                   }
+                   });
+            }
+
+            function loadTable()
+            {
+                $("#tb").empty()
+                if(!isConnected) return;
+                $("#tb").append("<tr><th>端口</th><th>是否打开</th></tr>")
+                $.getJSON("/getUsbStatus",function(data){
+                    $.each(data, function (n, value) {
+                        isChecked = ""
+                        if(value){
+                            isChecked = "checked";
+                            selectedRadio = 'rd_'+n
+                            }
+                        $("#tb").append("<tr>\
+                        <td width='100px'>"+n+"</td>\
+                        <td width='120px'><input type='radio' id='rd_"+n+"' "+isChecked+"/></td>\
+                        </tr>");
+                    });
+                });
+
+                $(":radio").click(function(i){
+                id = $(this).prop('id')
+                slotNum = $(this).prop('id').substr(3)
+                $.getJSON("/setDeviceStatus&SlotNum="+slotNum,function(data){
+                    if(!data["result"]){
+                       alert("操作失败!")
+                       }
+                    else{
+                        $("#"+selectedRadio).prop("checked", false)
+                        selectedRadio = id
+                    }
+                });
+            });
+            }
+            $("#refresh").click(function(){
+                 checkUsbStatus();
+                 loadTable();
+            });
+
+            checkUsbStatus();
+            loadTable();
+        });
+    </script>
+</html>

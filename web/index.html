@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>财咖网银助手1.0</title>
+    <meta name="robots" content="noindex" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5" />
+    <link rel="stylesheet" href="admin.css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script type="text/javascript"src="jquery.min.js"></script>
+  </head>
+  <body>
+    <!-- (A) SIDEBAR -->
+    <div id="pgside">
+      <!-- (A1) BRANDING OR USER -->
+      <!-- LINK TO DASHBOARD OR LOGOUT -->
+      <div id="pguser">
+        <img src="img.png"/>
+        <!--<i class="txt">网银助手</i>-->
+      </div>
+
+      <!-- (A2) MENU ITEMS -->
+      <a href="#" class="current">
+        <li class="txt" data-id="BillDownload">网银下载</li>
+      </a>
+      <a href="#">
+        <li class="txt" data-id="UsbHub">USB控制</li>
+      </a>
+      <a href="#">
+        <li class="txt" data-id="BankAccount">账户概览</li>
+      </a>
+      <a href="#">
+        <li class="txt" data-id="DataAnalysis">资金明细</li>
+      </a>
+      <a href="#">
+        <li class="txt" data-id="Import">流水导入</li>
+      </a>
+      <a href="#">
+        <li class="txt" data-id="Export">流水导出</li>
+      </a>
+      <a href="#">
+        <li class="txt" data-id="LogView">日志查看</li>
+      </a>
+    </div>
+
+    <!-- (B) MAIN -->
+    <div id="pgmain">
+      Main
+    </div>
+  </body>
+    <script>
+        $(function() {
+            $("#pgside").on("click", "li", function() {
+                var sId = $(this).data("id"); //获取data-id的值
+                window.location.hash = sId; //设置锚点
+                loadInner(sId);
+            });
+
+            function loadInner(sId) {
+                var sId = window.location.hash;
+                var pathn, i;
+                switch(sId) {
+                    case "#BillDownload":
+                        pathn = "bill.html";
+                        i = 0;
+                        break;
+                    case "#UsbHub":
+                        pathn = "usb.html";
+                        i = 1;
+                        break;
+                    case "#BankAccount":
+                        pathn = "account.html";
+                        i = 2;
+                        break;
+                    case "#DataAnalysis":
+                        pathn = "data.html";
+                        i = 3;
+                        break;　　
+                    case "#Import":
+                        pathn = "import.html";
+                        i = 4;
+                        break;
+                    case "#Export":
+                        pathn = "export.html";
+                        i = 5;
+                        break;
+                    case "#LogView":
+                        pathn = "log.html";
+                        i = 6;
+                        break;                        　　　　　
+                    default:
+                        pathn = "bill.html";
+                        i = 0;
+                        break;
+                }
+                $("#pgmain").load(pathn); //加载相对应的内容
+                $("#pgside li").eq(i).parent().addClass("current").siblings().removeClass("current"); //当前列表高亮
+            }
+            var sId = window.location.hash;
+            loadInner(sId);
+        });
+    </script>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang = "en">
+<head>
+<meta charset = "utf-8">
+<script type = "text/javascript" src = "jquery.min.js">
+</script>
+<title> This is an example for jQuery ajax upload file </title>
+</head>
+<body>
+<h3> This is an example for jQuery ajax upload file </h3>
+<div >
+<form id = "myform" method = "post" action = "" enctype = "multipart/form-data">
+<div >
+<input id = "file" type = "file"  name = "file" />
+<input id = "btn" type = "button" class = "button" value = "Upload file">
+</div>
+</form>
+</div>
+<script type = "text/javascript">
+$(document).ready(function(){
+
+function getQueryStringByName(name){
+    var result = location.search.match(new RegExp("[\?\&]" + name+ "=([^\&]+)","i"));
+    if(result == null || result.length < 1){
+        return "";
+    }
+        return result[1];
+    }
+alert(location)
+
+});
+</script>
+</body>
+</html>
