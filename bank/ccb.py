@@ -86,8 +86,7 @@ class ccb(Bank):
     self.logger.info("切换frame accIframe")
     self.waitSwitchFrame(self.Webdriver, By.ID, "accIframe", 5)
     self.logger.info("点击全选checkbox")
-    WebDriverWait(self.Webdriver, 10, 0.2).until(
-        EC.element_to_be_clickable((By.ID, 'all_0')))
+    self.waitElementLoad(self.Webdriver, By.ID, "all_0", 5)
     self.Webdriver.find_element(By.ID, 'all_0').click()
     self.logger.info("点击交易明细按钮")
     self.Webdriver.execute_script("detailQuery()")
@@ -99,6 +98,7 @@ class ccb(Bank):
          'document.querySelector("#EdDt").value = "'+self.EndDate.replace("-","")+'"'
     self.logger.info("修改起止日期:"+js)
     self.Webdriver.execute_script(js)
+    time.sleep(2)
     self.logger.info("切换到页面最后")
     self.waitElementLoad(self.Webdriver, By.XPATH, '/html/body/form/div[2]/div/input[1]', 5)
     self.Webdriver.find_element(By.XPATH, '/html/body/form/div[2]/div/input[1]').send_keys(Keys.END)
@@ -109,8 +109,8 @@ class ccb(Bank):
   def download(self):
       self.logger.info("开始下载")
       self.logger.info("点击下载全部")
-      time.sleep(5)
-      # WebDriverWait(self.Webdriver, 10, 0.2).until(EC.element_to_be_clickable((By.ID, 'dlAll')))
+      self.waitElementLoad(self.Webdriver, By.ID, "dlAll", 5)
+      WebDriverWait(self.Webdriver, 15, 0.2).until(EC.element_to_be_clickable((By.ID, "dlAll")))
       self.Webdriver.find_element(By.ID, 'dlAll').click()
       self.logger.info("点击Excel下载")
       self.Webdriver.find_element(By.XPATH, '/html/body/div[5]/ul/li[2]').click()

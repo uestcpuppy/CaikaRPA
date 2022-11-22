@@ -8,7 +8,6 @@ import win32api
 import win32con
 import configparser
 import database
-from debug.ReuseIe import *
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from DD.DDLib import DDLib
 import shutil

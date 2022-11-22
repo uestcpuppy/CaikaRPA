@@ -107,7 +107,6 @@ class myHandler(BaseHTTPRequestHandler):
             beginDate = self.getQueryStrParam("BeginDate")
             endDate = self.getQueryStrParam("EndDate")
             filter = self.getQueryStrParam("filter")
-            pageSize = 100
             result = database.getDetailListCount(accountId, beginDate, endDate, filter)
             self.responseJsonData(result)
 

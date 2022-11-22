@@ -116,8 +116,8 @@
                         $("#tb").append("<tr>\
                         <td>"+value["transaction_time"]+"</td>\
                         <td>"+$("#account option:selected").text()+"</td>\
-                        <td>"+value["income"]+"</td>\
-                        <td>"+value["expense"]+"</td>\
+                        <td>"+value["income"].toFixed(2)+"</td>\
+                        <td>"+value["expense"].toFixed(2)+"</td>\
                         <td>"+value["customer_bank_name"]+"</td>\
                         <td>"+value["customer_account_name"]+"</td>\
                         <td>"+value["customer_account_num"]+"</td>\
