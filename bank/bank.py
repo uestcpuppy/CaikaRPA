@@ -4,9 +4,8 @@ import os.path
 import ait
 import logging
 import os
-import win32api
 import win32con
-import configparser
+import win32api
 import database
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from DD.DDLib import DDLib
@@ -128,26 +127,26 @@ class Bank:
         self.Webdriver.implicitly_wait(5)
         self.Webdriver.set_script_timeout(5)
     def initWebdriverExist(self):
-        if self.Browser == "Chrome":
-            options = webdriver.ChromeOptions()
-            prefs = {
-                'profile.default_content_settings.popups': 0,
-                'download.default_directory': self.DownloadPath
-            }
-            options.add_experimental_option('prefs', prefs)
-            # options.add_argument("--headless")
-
-            options.add_experimental_option("excludeSwitches", ['enable-automation'])
-            self.Webdriver = webdriver.Chrome(chrome_options=options)
-        else:
-            #sys.path.append("..")
-            config = configparser.ConfigParser()
-            config.read("debug\\session.ini", encoding="utf-8")
-            url = config.get("IE", "url")
-            session_id = config.get("IE", "session_id")
-            print(session_id)
-            print(url)
-            self.Webdriver = ReuseIe(url, session_id)
+        # if self.Browser == "Chrome":
+        #     options = webdriver.ChromeOptions()
+        #     prefs = {
+        #         'profile.default_content_settings.popups': 0,
+        #         'download.default_directory': self.DownloadPath
+        #     }
+        #     options.add_experimental_option('prefs', prefs)
+        #     # options.add_argument("--headless")
+        #
+        #     options.add_experimental_option("excludeSwitches", ['enable-automation'])
+        #     self.Webdriver = webdriver.Chrome(chrome_options=options)
+        # else:
+        #     #sys.path.append("..")
+        #     config = configparser.ConfigParser()
+        #     config.read("debug\\session.ini", encoding="utf-8")
+        #     url = config.get("IE", "url")
+        #     session_id = config.get("IE", "session_id")
+        #     print(session_id)
+        #     print(url)
+        #     self.Webdriver = ReuseIe(url, session_id)
         #默认等待10秒
         self.Webdriver.implicitly_wait(15)
     def highlight(self,element):
