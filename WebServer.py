@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import time
 from http.server import BaseHTTPRequestHandler,HTTPServer
 from urllib.parse import parse_qsl, parse_qs
 import json
@@ -161,7 +162,6 @@ class myHandler(BaseHTTPRequestHandler):
             result = database.getSlotInfo(slotNum)
             self.responseJsonData(result,True)
 
-        #这里要改
         if self.path.find("getTask") !=-1:
             slotNum = self.getQueryStrParam("SlotNum")
             data = utils.getTask(slotNum)
