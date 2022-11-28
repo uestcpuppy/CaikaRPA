@@ -338,9 +338,9 @@ try:
 
     #incoming request
 
-    server = HTTPServer(('', config.PORT_NUMBER), myHandler)
+    server = HTTPServer(('', config.PORT_NUMBER_WEB), myHandler)
 
-    print ('Started httpserver on port ' , config.PORT_NUMBER)
+    print ('Started httpserver on port ' , config.PORT_NUMBER_WEB)
 
     #Wait forever for incoming htto requests
 

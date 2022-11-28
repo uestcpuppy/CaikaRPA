@@ -18,7 +18,7 @@ import pyscreenshot
 class Bank:
     def __init__(self):
         '所有网银处理的基类'
-        # self.BankName = ""
+        self.BankName = ""
         # self.BinPath = ""
         # self.LoginUrl = ""
         # self.LoginPasswd = ""
@@ -47,7 +47,6 @@ class Bank:
         self.initDownloadDir()
         self.xlsFileName = ""
         self.imgFileName = ""
-
 
     def initDownloadDir(self):
         targetDir = config.DOWNLOAD_DIR + self.BatchId + "\\"
@@ -110,45 +109,26 @@ class Bank:
             # self.Webdriver = webdriver.Chrome(chrome_options=options)
             #浦发需要这种模式
             self.Webdriver = webdriver.Chrome(chrome_options=options, desired_capabilities=desired_capabilities)
-        elif self.Browser == "Edge":
-
+        elif self.Browser == "Ie":
             self.Webdriver = webdriver.Ie()
-        else:
+        elif self.Browser == "Edge":
+            self.Webdriver = webdriver.Edge()
+        elif self.Browser == "IeInEdge":
             ie_options = webdriver.IeOptions()
             ie_options.ignore_zoom_level = True
             ie_options.attach_to_edge_chrome = True
             ie_options.edge_executable_path = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
             ie_options.page_load_strategy = "none"
-            driver = webdriver.Ie(executable_path=r"D:\\Python37\\Scripts\\IEDriverServer.exe", options=ie_options)
+            # driver = webdriver.Ie(executable_path=r"D:\\Python37\\Scripts\\IEDriverServer.exe", options=ie_options)
+            driver = webdriver.Ie(options=ie_options)
             self.Webdriver = driver
 
         self.Webdriver.maximize_window()
-        #默认等待10秒
-        self.Webdriver.implicitly_wait(5)
-        self.Webdriver.set_script_timeout(5)
-    def initWebdriverExist(self):
-        # if self.Browser == "Chrome":
-        #     options = webdriver.ChromeOptions()
-        #     prefs = {
-        #         'profile.default_content_settings.popups': 0,
-        #         'download.default_directory': self.DownloadPath
-        #     }
-        #     options.add_experimental_option('prefs', prefs)
-        #     # options.add_argument("--headless")
-        #
-        #     options.add_experimental_option("excludeSwitches", ['enable-automation'])
-        #     self.Webdriver = webdriver.Chrome(chrome_options=options)
-        # else:
-        #     #sys.path.append("..")
-        #     config = configparser.ConfigParser()
-        #     config.read("debug\\session.ini", encoding="utf-8")
-        #     url = config.get("IE", "url")
-        #     session_id = config.get("IE", "session_id")
-        #     print(session_id)
-        #     print(url)
-        #     self.Webdriver = ReuseIe(url, session_id)
-        #默认等待10秒
-        self.Webdriver.implicitly_wait(15)
+        #find_element隐式等待时间
+        self.Webdriver.implicitly_wait(config.IMPLICITLY_WAIT)
+        #js脚本执行超时时间
+        self.Webdriver.set_script_timeout(config.SCRIPT_TIMEOUT)
+
     def highlight(self,element):
         self.Webdriver.execute_script("arguments[0].setAttribute('style', "
                                       "arguments[1]);",

@@ -4,10 +4,11 @@ import json
 import urllib
 from DD.DDLib import DDLib
 import os
+import config
 
 data_true = {'result': 'ok'}
 data_false = {'result': 'failed'}
-host = ('localhost', 8888)
+host = ('localhost', config.PORT_NUMBER_DD)
 
 class Resquest(BaseHTTPRequestHandler):
     def do_GET(self):
