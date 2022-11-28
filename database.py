@@ -5,7 +5,6 @@ import utils
 import openpyxl
 import config
 import os
-from decimal import *
 
 def getDb():
     config={
@@ -19,7 +18,7 @@ def getDb():
     return db
 
 def getQueryResultAll(sql):
-    print (sql)
+    # print (sql)
     db = getDb()
     cursor = db.cursor()
     cursor.execute(sql)
@@ -316,45 +315,10 @@ def importBankXls(account_id, filePath):
         detailDict["summary"] = rowData[accountInfo["summary"]-1]
         detailList.append(detailDict)
     return createUniqueDetailList(detailList)
-    #  列数
-    # print(len(df.columns.values))
-    #  列索引
-    # print(df.columns.values)
 
 
 if __name__ == '__main__':
     # res = getDetailList("1", "2022-08-01", "2022-08-31")
-    # getCompanyAccountInfo("1", "2022-08-01", "2022-08-31")
-    # print (res)
-    slotNum = "1"
-    print (getSlotInfo(slotNum))
-    # accountId = "1"
-    # queryBeginDate = "2022-01-01"
-    # queryEndDate = "2022-01-01"
-    # status = "READY"
-    # s = createExecution(str(slotNum),str(accountId),queryBeginDate,queryEndDate)
-    # print (s)
-
-    # s = updateExecution("121", status, runBeginDatetime, "TEST", "TEST2")
-    # print(s)
-
-    # s = createExecution(slotNum, accountId, queryBeginDate, queryEndDate, status, "")
-    # print(s)
-
-    # getXlsDataList(filePath, "Sheet1", 2, 2)
-    # print (config.BankImportTemplate[0])
-    # detailDict = {}
-    # detailDict["account_id"] = 1
-    # detailDict["transaction_time"] = "2022-01-01 00:00:00"
-    # detailDict["income"] = 1
-    # detailDict["expense"] = 1
-    # detailDict["balance"] = 20
-    # detailDict["customer_account_name"] = "test"
-    # detailDict["customer_account_num"] = "test"
-    # detailDict["customer_bank_name"] = "test"
-    # detailDict["transaction_id"] = "test"
-    # detailDict["summary"] = "test"
-    # templateConfig = config.getBankImportTemplate(1)
-    # print (importBankXls(1, filePath, templateConfig))
+    pass
 
 
