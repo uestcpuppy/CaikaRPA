@@ -5,7 +5,7 @@
 <style>
 
 #executionDiv{
-  max-width: 80%
+  max-width: 100%
 }
 
 </style>
@@ -388,7 +388,7 @@
                 if(endIndex>executionList.length-1)
                   endIndex = executionList.length-1;
 
-                element.empty().append("<tr><th>批次ID</th><th>账户</th><th>银行</th><th>查询日期</th><th>执行开始</th><th>执行结束</th><th>执行状态</th><th>银行流水</th><th>屏幕截图</th><th>操作</th></tr>")
+                element.empty().append("<tr><th>批次ID</th><th>账户</th><th>银行</th><th>查询日期</th><th>执行时间</th><th>执行状态</th><th>银行流水</th><th>屏幕截图</th><th>操作</th></tr>")
 
                 for (var i=beginIndex;i<=endIndex;i++)
                 {
@@ -397,13 +397,12 @@
                         beginStr = ""
                         endStr = ""
                         if(value["run_begin_datetime"] != null) beginStr = value["run_begin_datetime"];
-                        if(value["run_end_datetime"] != null) endStr = value["run_end_datetime"];
+                        if(value["run_end_datetime"] != null) endStr = value["run_end_datetime"].substring(11,19);
                         element.append("<tr>\
                         <td>"+value["id"]+"</td><td>"+value["account_name"]+"</td>\
                         <td>"+value["bank_name"]+"</td>\
-                        <td>"+value["query_begin_date"]+"至"+value["query_end_date"]+"</td>\
-                        <td>"+beginStr+"</td>\
-                        <td>"+endStr+"</td>\
+                        <td>"+value["query_begin_date"]+"~"+value["query_end_date"]+"</td>\
+                        <td>"+beginStr+"~"+endStr+"</td>\
                         <td width='150'><span>"+taskStatusMap.get(value["status"])+"</span></td>\
                         <td width='100'>"+getXlsDownloadStr(value)+"</td>\
                         <td width='100'>"+getImgDownloadStr(value)+"</td>\

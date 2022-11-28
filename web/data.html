@@ -113,13 +113,19 @@
                         newSummary = Substr(value["summary"], 0, 20)
                         if(newSummary != value["summary"])
                            newSummary = newSummary+"..."
+                        new_customer_bank_name = Substr(value["customer_bank_name"], 0, 20)
+                        if(new_customer_bank_name != value["customer_bank_name"])
+                           new_customer_bank_name = new_customer_bank_name+"..."
+                        new_customer_account_name = Substr(value["customer_account_name"], 0, 20)
+                        if(new_customer_account_name != value["customer_account_name"])
+                           new_customer_account_name = new_customer_account_name+"..."
                         $("#tb").append("<tr>\
                         <td>"+value["transaction_time"]+"</td>\
                         <td>"+$("#account option:selected").text()+"</td>\
                         <td>"+value["income"].toFixed(2)+"</td>\
                         <td>"+value["expense"].toFixed(2)+"</td>\
-                        <td>"+value["customer_bank_name"]+"</td>\
-                        <td>"+value["customer_account_name"]+"</td>\
+                        <td><div class=\"tooltip\">"+new_customer_bank_name+"<span class=\"tooltiptext\">"+value["customer_bank_name"]+"</span></div></td>\
+                        <td><div class=\"tooltip\">"+new_customer_account_name+"<span class=\"tooltiptext\">"+value["customer_account_name"]+"</span></div></td>\
                         <td>"+value["customer_account_num"]+"</td>\
                         <td><div class=\"tooltip\">"+newSummary+"<span class=\"tooltiptext\">"+value["summary"]+"</span></div></td>\
                         </tr>");

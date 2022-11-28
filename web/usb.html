@@ -49,19 +49,29 @@
             {
                 $("#tb").empty()
                 if(!isConnected) return;
-                $("#tb").append("<tr><th>端口</th><th>是否打开</th></tr>")
+                $("#tb").append("<tr><th>端口</th><th>是否打开</th><th>端口</th><th>是否打开</th></tr>")
                 $.getJSON("/getUsbStatus",function(data){
-                    $.each(data, function (n, value) {
-                        isChecked = ""
-                        if(value){
-                            isChecked = "checked";
-                            selectedRadio = 'rd_'+n
+                    for(var i=1;i<=30;i=i+2)
+                    {
+                        value_1 = data[i]
+                        isChecked_1 = ""
+                        if(value_1){
+                            isChecked_1 = "checked";
+                            selectedRadio = 'rd_'+i
+                            }
+                        value_2 = data[i+1]
+                        isChecked_2 = ""
+                        if(value_2){
+                            isChecked_2 = "checked";
+                            selectedRadio = 'rd_'+(i+1)
                             }
                         $("#tb").append("<tr>\
-                        <td width='100px'>"+n+"</td>\
-                        <td width='120px'><input type='radio' id='rd_"+n+"' "+isChecked+"/></td>\
+                        <td width='100px'>"+i+"</td>\
+                        <td width='120px'><input type='radio' id='rd_"+i+"' "+isChecked_1+"/></td>\
+                        <td width='100px'>"+(i+1)+"</td>\
+                        <td width='120px'><input type='radio' id='rd_"+(i+1)+"' "+isChecked_2+"/></td>\
                         </tr>");
-                    });
+                    }
                 });
 
                 $(":radio").click(function(i){
