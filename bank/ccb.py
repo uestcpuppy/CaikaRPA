@@ -1,3 +1,5 @@
+import uiautomation
+
 from bank.bank import Bank
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -34,7 +36,8 @@ class ccb(Bank):
     WebDriverWait(self.Webdriver, 10, 0.2).until(
         EC.element_to_be_clickable((By.ID, 'jumpBtn')))
     self.logger.info("点击开始登录按钮")
-    self.Webdriver.find_element(By.ID, 'jumpBtn').click()
+    # self.Webdriver.find_element(By.ID, 'jumpBtn').click()
+    uiautomation.ButtonControl(AutomationId="jumpBtn").Click()
     time.sleep(3)
     self.logger.info("输入U盾密码并回车")
     self.sendkeysRemote(self.ConfirmPasswd)
@@ -82,17 +85,19 @@ class ccb(Bank):
     self.logger.info("点击建行活期账户")
     self.Webdriver.execute_script("goTx('5111')")
     self.logger.info("切换frame win_5111")
-    self.waitSwitchFrame(self.Webdriver, By.ID, "win_5111", 5)
+    # self.waitSwitchFrame(self.Webdriver, By.ID, "win_5111", 5)
+    self.Webdriver.switch_to.frame("win_5111")
     self.logger.info("切换frame accIframe")
-    self.waitSwitchFrame(self.Webdriver, By.ID, "accIframe", 5)
+    # self.waitSwitchFrame(self.Webdriver, By.ID, "accIframe", 5)
+    self.Webdriver.switch_to.frame("accIframe")
     self.logger.info("点击全选checkbox")
-    self.waitElementLoad(self.Webdriver, By.ID, "all_0", 5)
+    # self.waitElementLoad(self.Webdriver, By.ID, "all_0", 5)
     self.Webdriver.find_element(By.ID, 'all_0').click()
     self.logger.info("点击交易明细按钮")
     self.Webdriver.execute_script("detailQuery()")
     self.logger.info("返回上级frame")
     self.Webdriver.switch_to.parent_frame()
-    self.waitElementLoad(self.Webdriver, By.ID, "StDt", 5)
+    # self.waitElementLoad(self.Webdriver, By.ID, "StDt", 5)
     #修改起止日期
     js = 'document.querySelector("#StDt").value = "'+self.BeginDate.replace("-","")+'"\n' \
          'document.querySelector("#EdDt").value = "'+self.EndDate.replace("-","")+'"'
@@ -100,7 +105,7 @@ class ccb(Bank):
     self.Webdriver.execute_script(js)
     time.sleep(2)
     self.logger.info("切换到页面最后")
-    self.waitElementLoad(self.Webdriver, By.XPATH, '/html/body/form/div[2]/div/input[1]', 5)
+    # self.waitElementLoad(self.Webdriver, By.XPATH, '/html/body/form/div[2]/div/input[1]', 5)
     self.Webdriver.find_element(By.XPATH, '/html/body/form/div[2]/div/input[1]').send_keys(Keys.END)
     self.logger.info("点击确定")
     self.Webdriver.find_element(By.XPATH, '/html/body/form/div[2]/div/input[1]').click()
@@ -109,8 +114,8 @@ class ccb(Bank):
   def download(self):
       self.logger.info("开始下载")
       self.logger.info("点击下载全部")
-      self.waitElementLoad(self.Webdriver, By.ID, "dlAll", 5)
-      WebDriverWait(self.Webdriver, 15, 0.2).until(EC.element_to_be_clickable((By.ID, "dlAll")))
+      # self.waitElementLoad(self.Webdriver, By.ID, "dlAll", 5)
+      # WebDriverWait(self.Webdriver, 15, 0.2).until(EC.element_to_be_clickable((By.ID, "dlAll")))
       self.Webdriver.find_element(By.ID, 'dlAll').click()
       self.logger.info("点击Excel下载")
       self.Webdriver.find_element(By.XPATH, '/html/body/div[5]/ul/li[2]').click()
@@ -129,8 +134,6 @@ class ccb(Bank):
   def run(self):
       time.sleep(5)
       self.login()
-      time.sleep(5)
       self.query()
       self.download()
-      time.sleep(5)
       self.quit()

@@ -7,6 +7,6 @@ UPLOAD_PATH =  DATA_ROOT + "upload\\"
 PORT_NUMBER_WEB = 8080
 PORT_NUMBER_DD = 8888
 
-#webdriver≈‰÷√
+#Webdriver≈‰÷√
 IMPLICITLY_WAIT = 5
 SCRIPT_TIMEOUT = 5

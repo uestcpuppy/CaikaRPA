@@ -39,7 +39,7 @@ class Bank:
         # self.Browser = ""
         #关闭CCB
         self.closeCCBTips()
-        self.DDServer = "127.0.0.1:8888"
+        self.DDServer = "127.0.0.1:"+config.PORT_NUMBER_DD
         if self.Browser != "":
             self.initWebdriver()
         self.initLogger()
@@ -100,13 +100,11 @@ class Bank:
             }
             options.add_experimental_option('prefs', prefs)
             # options.add_argument("--headless")
-
             options.add_experimental_option("excludeSwitches", ['enable-automation'])
             desired_capabilities = DesiredCapabilities.CHROME
             # 修改页面加载策略
             # none表示将br.get方法改为非阻塞模式，在页面加载过程中也可以给br发送指令，如获取url，pagesource等资源。
-            desired_capabilities["pageLoadStrategy"] = "none"
-            # self.Webdriver = webdriver.Chrome(chrome_options=options)
+            desired_capabilities["pageLoadStrategy"] = "normal"
             #浦发需要这种模式
             self.Webdriver = webdriver.Chrome(chrome_options=options, desired_capabilities=desired_capabilities)
         elif self.Browser == "Ie":
@@ -161,14 +159,6 @@ class Bank:
 
     def pressEnterRemote(self):
         url =  "http://"+self.DDServer + "/action=enter"
-        ret = requests.get(url)
-
-    def killIeRemote(self):
-        url =  "http://"+self.DDServer + "/action=killie"
-        ret = requests.get(url)
-
-    def killCcbRemote(self):
-        url =  "http://"+self.DDServer + "/action=killccb"
         ret = requests.get(url)
 
     #此方法用于下载完成后对文件的处理

@@ -6,6 +6,9 @@ import os
 import datetime
 from decimal import *
 import uiautomation as auto
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Util.Padding import unpad
 
 ROOT_DOWNLOAD_PATH = config.DATA_ROOT + "download\\"
 
