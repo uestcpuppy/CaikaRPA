@@ -18,7 +18,7 @@ import pyscreenshot
 class Bank:
     def __init__(self):
         '所有网银处理的基类'
-        self.BankName = ""
+        # self.BankName = ""
         # self.BinPath = ""
         # self.LoginUrl = ""
         # self.LoginPasswd = ""
@@ -126,7 +126,7 @@ class Bank:
         self.Webdriver.maximize_window()
         #find_element隐式等待时间
         self.Webdriver.implicitly_wait(config.IMPLICITLY_WAIT)
-        #js脚本执行超时时间
+        #
         self.Webdriver.set_script_timeout(config.SCRIPT_TIMEOUT)
 
     def highlight(self,element):
