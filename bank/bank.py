@@ -39,7 +39,7 @@ class Bank:
         # self.Browser = ""
         #关闭CCB
         self.closeCCBTips()
-        self.DDServer = "127.0.0.1:"+config.PORT_NUMBER_DD
+        self.DDServer = "127.0.0.1:"+str(config.PORT_NUMBER_DD)
         if self.Browser != "":
             self.initWebdriver()
         self.initLogger()
@@ -54,6 +54,10 @@ class Bank:
             os.mkdir(targetDir)
         return
 
+    def setup(self):
+        return True
+    def teardown(self):
+        return True
     def login(self):
         return True
     def query(self):
@@ -71,7 +75,7 @@ class Bank:
         logger.level = logging.INFO
         # 第二步：定义处理器。控制台和文本输出两种方式
         console_handler = logging.StreamHandler()
-        file_path = "./back.log"
+        file_path = "./rpa.log"
         if os.path.exists(file_path):
             mode = 'a'
         else:

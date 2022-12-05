@@ -131,7 +131,9 @@ def getAccountInfo(accountId):
     return getQueryResultOne(sql)
 
 def getAccountList(companyId):
-    sql = "select * from account where company_id = "+ companyId
+    sql = "select a.*,c.name as company_name from account as a,company as c where a.company_id = c.id and a.company_id = "+ companyId
+    if(companyId == "0"):
+        sql = "select a.*,c.name as company_name from account as a,company as c where a.company_id = c.id order by a.company_id"
     res = getQueryResultAll(sql)
     return res
 
@@ -292,6 +294,7 @@ def importBankXls(account_id, filePath):
     try:
         df = pd.read_excel(filePath, accountInfo["sheet_name"], accountInfo["skip_firstrows"],keep_default_na=False)
     except Exception as e:
+        print (str(e))
         return False, "文件未找到"
     # 行索引
     newInexValues = df.index.values[0:len(df.index.values)-accountInfo["skip_lastrows"]]

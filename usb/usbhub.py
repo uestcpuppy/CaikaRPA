@@ -49,7 +49,7 @@ class usbhub(object):
         self.openDevice()
         deviceStatus = (c_char * 30)(0)
         result =  self._usbCtrl.GetDeviceStatus(self._deviceHandle, deviceStatus, 30)
-        print (deviceStatus.raw)
+        # print (deviceStatus.raw)
         for i in range(0, 30):
             if deviceStatus[i] == b'\x01':
                 ret[i+1] = True

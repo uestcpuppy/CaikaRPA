@@ -13,7 +13,7 @@ import re
 from io import BytesIO
 import os
 
-LOG_PATH = config.PROJECT_ROOT + "back.log"
+LOG_PATH = config.PROJECT_ROOT + "rpa.log"
 
 class DateEncoder(json.JSONEncoder):
     def default(self, obj):

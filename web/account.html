@@ -47,7 +47,7 @@
             function initPage()
             {
                 $.getJSON("/getCompanyList",function(data){
-                    str = ""
+                    str = '<option value="0">所有</option>'
                     $.each(data, function (n, value) {
                         str = str + "<option value="+value["id"]+">"+value["name"]+"</option>"
                     });
@@ -64,7 +64,7 @@
                 CompanyId = $("option:selected").val()
                 BeginDate = $("#beginDate").val()
                 EndDate = $("#endDate").val()
-                str = "<tr><th>账户ID</th><th>账户简称</th><th>期初余额</th><th>本期收入</th><th>本期支出</th><th>期末余额</th></tr>"
+                str = "<tr><th>账户ID</th><th>账户简称</th><th>所属公司</th><th>期初余额</th><th>本期收入</th><th>本期支出</th><th>期末余额</th></tr>"
                 $("#tb").empty()
                 $("#tb").append(str)
                 var final_first_balance = 0;
@@ -82,6 +82,7 @@
                         $("#tb").append("<tr>\
                         <td>"+value["id"]+"</td>\
                         <td>"+value["short_name"]+"</td>\
+                        <td>"+value["company_name"]+"</td>\
                         <td>"+value["first_balance"].toFixed(2)+"</td>\
                         <td><a href='#' account_id='"+value["id"]+"' account_name='"+value["short_name"]+"' name='incomeDetail'>"+value["total_income"].toFixed(2)+"</a></td>\
                         <td><a href='#' account_id='"+value["id"]+"' account_name='"+value["short_name"]+"' name='expenseDetail'>"+value["total_expense"].toFixed(2)+"</a></td>\
@@ -93,6 +94,7 @@
                 $("#tb").append("<tr>\
                  <td></td>\
                  <td>总计</td>\
+                 <td></td>\
                  <td>"+final_first_balance.toFixed(2)+"</td>\
                  <td>"+final_income.toFixed(2)+"</td>\
                  <td>"+final_expense.toFixed(2)+"</td>\
