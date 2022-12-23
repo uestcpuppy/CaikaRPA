@@ -83,6 +83,80 @@ def updateExecution(executionId, status="",runEndDatetime="",xlsFilename="",imgF
     sql = sql + " WHERE id = "+executionId
     return query(sql)
 
+def createCompany(name):
+    # 1. 创建数据库连接对象
+    con = getDb()
+    # 2. 通过连接对象获取游标
+    with con.cursor() as cursor:
+            try:
+                # 3. 通过游标执行SQL并获得执行结果
+                sql = "INSERT INTO `company` VALUES (NULL,'%s')"%(name)
+                result = cursor.execute(sql)
+                # 4. 操作成功提交事务
+                con.commit()
+            except Exception as e:
+                con.rollback()
+                return False
+    # 5. 关闭连接释放资源
+    con.close()
+    return True
+
+def removeCompany(companyId):
+    sql = "delete from company where id = "+companyId
+    return query(sql)
+
+def createSlot(slotNum, accountId):
+    # 1. 创建数据库连接对象
+    con = getDb()
+    # 2. 通过连接对象获取游标
+    with con.cursor() as cursor:
+            try:
+                # 3. 通过游标执行SQL并获得执行结果
+                sql = "INSERT INTO `slot` VALUES ('%s','%s', 0, 0)"%(slotNum, accountId)
+                result = cursor.execute(sql)
+                # 4. 操作成功提交事务
+                con.commit()
+            except Exception as e:
+                con.rollback()
+                return False
+    # 5. 关闭连接释放资源
+    con.close()
+    return True
+
+def removeSlot(slotNum):
+    sql = "delete from slot where slot_num = "+slotNum
+    return query(sql)
+
+def removeTemplate(id):
+    sql = "delete from template where id = "+id
+    return query(sql)
+
+def createAccount(companyId, shortName, accountNum, loginAccount, loginPwd, confirmPwd, bankId, templateId):
+    # 1. 创建数据库连接对象
+    con = getDb()
+    # 2. 通过连接对象获取游标
+    with con.cursor() as cursor:
+            try:
+                # 3. 通过游标执行SQL并获得执行结果
+                sql = "INSERT INTO `account` VALUES (NULL,'%s','%s','%s','%s','%s','%s','%s','%s',NULL)"%(accountNum, shortName,loginAccount, loginPwd,confirmPwd, companyId,bankId,templateId)
+                result = cursor.execute(sql)
+                # 4. 操作成功提交事务
+                con.commit()
+            except Exception as e:
+                con.rollback()
+                return False
+    # 5. 关闭连接释放资源
+    con.close()
+    return True
+
+def removeAccount(id):
+    sql = "delete from account where id = "+id
+    return query(sql)
+
+def getBankList():
+    sql = "select * from bank order by id asc"
+    return getQueryResultAll(sql)
+
 def createExecution(slotNum,accountId,queryBeginDate,queryEndDate):
     runBeginDatetime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     sql = "INSERT INTO `execution` VALUES (NULL,%s,%s,'%s','%s','READY','%s',NULL,'','')"%(slotNum,accountId,queryBeginDate,queryEndDate,runBeginDatetime)
@@ -174,7 +248,12 @@ def getDetailList(accountId, beginDate, endDate, pageNum=1, pageSize=10000, filt
     return res
 
 def getAccountListAll():
-    sql = "SELECT a.id,a.short_name,a.account_num,c.`name` as company_name from account as a,company as c where a.company_id = c.id order by a.company_id"
+    # sql = "SELECT a.id,a.short_name,a.account_num,c.`name` as company_name from account as a,company as c where a.company_id = c.id order by a.company_id"
+    sql = "SELECT a.*,t.`name` as template_name, b.`name` as bank_name,c.`name` as company_name from account as a " \
+          "LEFT JOIN company as c ON a.company_id = c.id " \
+          "LEFT JOIN bank as b on b.id = a.bank_id " \
+          "LEFT JOIN template as t ON t.id = a.template_id " \
+          "order by id asc"
     res = getQueryResultAll(sql)
     return res
 

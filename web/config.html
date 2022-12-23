@@ -1,0 +1,371 @@
+<!DOCTYPE html >
+<html>
+  <head>
+    <title>财咖网银助手v1.0 - 配置管理</title>
+    <meta charset="utf-8">
+    <style>
+      .divCls {
+        width: 100%;
+        margin-left: 20px;
+      }
+
+      .form {
+        border: 1px solid #ccc;
+        padding: 10px;
+        width: 50%;
+        font-weight: 400;
+      }
+
+      .form span {
+        margin-right: 10px;
+      }
+
+      #tb_company {
+        width: 500px;
+      }
+
+      #tb_account {
+        width: 1200px;
+      }
+
+      #tb_template {
+        width: 2000px;
+      }
+
+      #tb_slot {
+        width: 500px;
+      }
+
+      table {
+        margin-top:10px;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 14px;
+        border-spacing: 1px;
+        background-color: rgba(201,201,201,1); /*边线颜色*/
+        border-collapse: separate;
+        width: 100%;
+      }
+
+      table td {
+        height: 25px;
+        border: 0px solid #ddd;
+        background-color: #fff;
+        padding: 3px;
+      }
+
+      table th{
+        padding: 3px;
+        text-align: left;
+        background-color: #d9d9d9;
+        color: black;
+      }
+
+      table a:link
+      {
+        text-decoration: none;
+        color: blue
+      }
+
+      table a:active
+      {
+        text-decoration:blink
+      }
+
+      table a:hover
+      {
+        text-decoration:underline;
+        color: red
+      }
+
+      table a:visited
+      {
+        text-decoration: none;
+        color: blue
+      }
+      table tr:hover td
+      {
+        background:none;
+      }
+      table tr:hover
+      {
+        background-color: #ddd;
+      }
+    </style>
+  <script type="text/javascript"src="jquery.min.js"></script>
+  <script type="text/javascript" src="jquery.modal.min.js"></script>
+  <script type="text/javascript" src="jquery.pagination.js"></script>
+  <script type="text/javascript" src="common.js"></script>
+<!--  <link rel="stylesheet" href="admin.css" />-->
+  <link rel="stylesheet" href="jquery.modal.min.css" />
+<!--  <link rel="stylesheet" href="pagination.css" />-->
+  </head>
+<body>
+  <div class="divCls">
+    <h2>一、收付组织配置</h2>
+    <div id="companyForm" class="form">
+      <div><span>公司名称:</span><input name="name"/></div>
+      <div><input  id="addCompany" type="button" value="新增"/></div>
+    </div>
+    <table id="tb_company"></table>
+  </div>
+
+
+  <div class="divCls">
+    <h2>二、银行账户配置</h2>
+    <div id="accountForm" class="form">
+      <div><span>所属公司:</span><select id="companyId"></select></div>
+      <div><span>账户简称:</span><input name="shortName"/></div>
+      <div><span>银行账号:</span><input name="accountNum"/></div>
+      <div><span>登录账号:</span><input name="loginAccount"/></div>
+      <div><span>登录密码:</span><input name="loginPwd"/></div>
+      <div><span>优盾密码:</span><input name="confirmPwd"/></div>
+      <div><span>所属银行:</span><select id="bankId"></select></div>
+      <div><span>流水模板:</span><select id="templateId"></select></div>
+      <div><input  id="addAccount" type="button" value="新增"/></div>
+    </div>
+    <table id="tb_account"></table>
+  </div>
+
+  <div class="divCls">
+    <h2>三、银行模板配置</h2>
+    <table id="tb_template"></table>
+  </div>
+
+  <div class="divCls">
+    <h2>四、UsbHub配置</h2>
+    <div id="slotForm" class="form">
+      <div><span>SlotNum:</span><input name="slotNum"/></div>
+      <div><span>AccountID:</span><input name="accountId"/></div>
+      <div><input  id="addSlot" type="button" value="新增"/></div>
+    </div>
+    <table id="tb_slot"></table>
+  </div>
+
+  </body>
+    <script>
+
+        $(function() {
+
+            $.ajaxSettings.async = false;
+
+            function loadTableSlot()
+            {
+
+                str = "<tr><th>SLOT_NUM</th><th>ACCOUNT_ID</th><th>账户简称</th><th>操作</th></tr>"
+                $("#tb_slot").empty()
+                $("#tb_slot").append(str)
+                $.getJSON("/getSlotList",function(data){
+                    $.each(data, function (n, value) {
+                        $("#tb_slot").append("<tr>\
+                        <td>"+value["slot_num"]+"</td>\
+                        <td>"+value["account_id"]+"</td>\
+                        <td>"+value["short_name"]+"</td>\
+                        <td><input type='button' value='删除'/></td>\
+                        </tr>");
+                    });
+                });
+            }
+
+            loadTableSlot()
+
+            $("#tb_slot input").click(function(){
+                var slotNum = $(this).parent().siblings(":first").text()
+                if(confirm("确定要删除么?"))
+                {
+                  $.getJSON("/removeSlot&slotNum="+slotNum,function(data){
+                      alert(data["result"])
+                      window.location.reload()
+                  });
+                }
+            })
+
+            $("#addSlot").click(function(){
+                var slotNum = $("#slotForm input[name='slotNum']").val()
+                var accountId = $("#slotForm input[name='accountId']").val()
+                $.getJSON("/createSlot&slotNum="+slotNum+"&accountId="+accountId,function(data){
+                      alert(data["result"])
+                      window.location.reload()
+                });
+            })
+
+            function loadTableTemplate()
+            {
+
+                str = "<tr><th>ID</th>\
+                <th>模板名称</th>\
+                <th>所属银行</th>\
+                <th>SHEET_NAME</th>\
+                <th>SKIP_FIRSTROWS</th>\
+                <th>SKIP_LASTROWS</th>\
+                <th>TRANSACTION_TIME</th>\
+                <th>INCOME</th>\
+                <th>EXPENSE</th>\
+                <th>BALANCE</th>\
+                <th>CUSTOMER_ACCOUNT_NAME</th>\
+                <th>CUSTOMER_ACCOUNT_NUM</th>\
+                <th>CUSTOMER_BANK_NAME</th>\
+                <th>TRANSACTION_ID</th>\
+                <th>SUMMARY</th>\
+                <th>TIME_FORMAT</th>\
+                <th>操作</th></tr>"
+                $("#tb_template").empty()
+                $("#tb_template").append(str)
+                $.getJSON("/getTemplateList",function(data){
+                    $.each(data, function (n, value) {
+                        $("#tb_template").append("<tr>\
+                        <td>"+value["id"]+"</td>\
+                        <td>"+value["name"]+"</td>\
+                        <td>"+value["bank_id"]+"</td>\
+                        <td>"+value["sheet_name"]+"</td>\
+                        <td>"+value["skip_firstrows"]+"</td>\
+                        <td>"+value["skip_lastrows"]+"</td>\
+                        <td>"+value["transaction_time"]+"</td>\
+                        <td>"+value["income"]+"</td>\
+                        <td>"+value["expense"]+"</td>\
+                        <td>"+value["balance"]+"</td>\
+                        <td>"+value["customer_account_name"]+"</td>\
+                        <td>"+value["customer_account_num"]+"</td>\
+                        <td>"+value["customer_bank_name"]+"</td>\
+                        <td>"+value["transaction_id"]+"</td>\
+                        <td>"+value["summary"]+"</td>\
+                        <td>"+value["time_format"]+"</td>\
+                        <td><input type='button' value='删除'/></td>\
+                        </tr>");
+                    });
+                });
+            }
+
+            loadTableTemplate()
+
+            $("#tb_template input").click(function(){
+                var id = $(this).parent().siblings(":first").text()
+                if(confirm("确定要删除么?"))
+                {
+                  $.getJSON("/removeTemplate&id="+id,function(data){
+                      alert(data["result"])
+                      window.location.reload()
+                  });
+                }
+            })
+
+            function loadTableCompany()
+            {
+
+                str = "<tr><th>ID</th><th>公司名称</th><th>操作</th></tr>"
+                $("#tb_company").empty()
+                $("#tb_company").append(str)
+                $.getJSON("/getCompanyList",function(data){
+                    $.each(data, function (n, value) {
+                        $("#tb_company").append("<tr>\
+                        <td>"+value["id"]+"</td>\
+                        <td>"+value["name"]+"</td>\
+                        <td><input type='button' value='删除'/></td>\
+                        </tr>");
+                    });
+                });
+            }
+
+            loadTableCompany()
+
+            $("#tb_company input").click(function(){
+                var id = $(this).parent().siblings(":first").text()
+                if(confirm("确定要删除么?"))
+                {
+                  $.getJSON("/removeCompany&companyId="+id,function(data){
+                      alert(data["result"])
+                      window.location.reload()
+                  });
+                }
+            })
+
+            $("#addCompany").click(function(){
+                var name = $("#companyForm input[name='name']").val()
+                $.getJSON("/createCompany&name="+name,function(data){
+                      alert(data["result"])
+                      window.location.reload()
+                });
+            })
+
+
+            function loadTableAccount()
+            {
+                str = "<tr><th>ID</th><th>所属公司</th><th>账户简称</th><th>账号</th><th>登录名</th><th>登录密码</th><th>U盾密码</th><th>所属银行</th><th>流水模板</th><th>操作</th></tr>"
+                $("#tb_account").empty()
+                $("#tb_account").append(str)
+                $.getJSON("/getAllAccountList",function(data){
+                    $.each(data, function (n, value) {
+                        $("#tb_account").append("<tr>\
+                        <td>"+value["id"]+"</td>\
+                        <td>"+value["company_name"]+"</td>\
+                        <td>"+value["short_name"]+"</td>\
+                        <td>"+value["account_num"]+"</td>\
+                        <td>"+value["login_account"]+"</td>\
+                        <td>"+value["login_pwd"]+"</td>\
+                        <td>"+value["confirm_pwd"]+"</td>\
+                        <td>"+value["bank_name"]+"</td>\
+                        <td>"+value["template_name"]+"</td>\
+                        <td><input type='button' value='删除'/></td>\
+                        </tr>");
+                    });
+                });
+            }
+
+            loadTableAccount()
+
+            $("#tb_account input").click(function(){
+                var id = $(this).parent().siblings(":first").text()
+                if(confirm("确定要删除么?"))
+                {
+                  $.getJSON("/removeAccount&id="+id,function(data){
+                      alert(data["result"])
+                      window.location.reload()
+                  });
+                }
+            })
+
+            function initAccountForm()
+            {
+                $.getJSON("/getCompanyList",function(data){
+                    str = ""
+                    $.each(data, function (n, value) {
+                        str = str + "<option value="+value["id"]+">"+value["name"]+"</option>"
+                    });
+                    $("#companyId").append(str);
+                });
+
+                $.getJSON("/getBankList",function(data){
+                    str = ""
+                    $.each(data, function (n, value) {
+                        str = str + "<option value="+value["id"]+">"+value["name"]+"</option>"
+                    });
+                    $("#bankId").append(str);
+                });
+
+                $.getJSON("/getTemplateList",function(data){
+                    str = ""
+                    $.each(data, function (n, value) {
+                        str = str + "<option value="+value["id"]+">"+value["name"]+"</option>"
+                    });
+                    $("#templateId").append(str);
+                });
+            }
+            initAccountForm()
+
+            $("#addAccount").click(function(){
+                var companyId = $("#companyId option:selected").val()
+                var shortName = $("#accountForm input[name='shortName']").val()
+                var accountNum = $("#accountForm input[name='accountNum']").val()
+                var loginAccount = $("#accountForm input[name='loginAccount']").val()
+                var loginPwd = $("#accountForm input[name='loginPwd']").val()
+                var confirmPwd = $("#accountForm input[name='confirmPwd']").val()
+                var bankId = $("#bankId option:selected").val()
+                var templateId = $("#templateId option:selected").val()
+                $.getJSON("/createAccount&companyId="+companyId+"&shortName="+shortName+"&accountNum="+accountNum+"&loginAccount="+loginAccount+"&loginPwd="+loginPwd+"&confirmPwd="+confirmPwd+"&bankId="+bankId+"&templateId="+templateId,function(data){
+                      alert(data["result"])
+                      window.location.reload()
+                });
+            })
+
+        });
+    </script>
+</html>

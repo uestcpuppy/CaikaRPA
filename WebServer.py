@@ -52,6 +52,53 @@ class myHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
 
+        if self.path.find("createAccount") !=-1:
+            companyId = self.getQueryStrParam("companyId")
+            shortName = self.getQueryStrParam("shortName")
+            accountNum = self.getQueryStrParam("accountNum")
+            loginAccount = self.getQueryStrParam("loginAccount")
+            loginPwd = self.getQueryStrParam("loginPwd")
+            confirmPwd = self.getQueryStrParam("confirmPwd")
+            bankId = self.getQueryStrParam("bankId")
+            templateId = self.getQueryStrParam("templateId")
+            result = database.createAccount(companyId, shortName, accountNum, loginAccount, loginPwd, confirmPwd, bankId, templateId)
+            self.responseJsonData({"result":result})
+
+        if self.path.find("getBankList") !=-1:
+            result = database.getBankList()
+            self.responseJsonData(result)
+
+        if self.path.find("createSlot") !=-1:
+            slotNum = self.getQueryStrParam("slotNum")
+            accountId = self.getQueryStrParam("accountId")
+            result = database.createSlot(slotNum, accountId)
+            self.responseJsonData({"result":result})
+
+        if self.path.find("createCompany") !=-1:
+            name = self.getQueryStrParam("name")
+            result = database.createCompany(name)
+            self.responseJsonData({"result":result})
+
+        if self.path.find("removeCompany") !=-1:
+            companyId = self.getQueryStrParam("companyId")
+            result = database.removeCompany(companyId)
+            self.responseJsonData({"result":result})
+
+        if self.path.find("removeAccount") !=-1:
+            id = self.getQueryStrParam("id")
+            result = database.removeAccount(id)
+            self.responseJsonData({"result":result})
+
+        if self.path.find("removeTemplate") !=-1:
+            id = self.getQueryStrParam("id")
+            result = database.removeTemplate(id)
+            self.responseJsonData({"result":result})
+
+        if self.path.find("removeSlot") !=-1:
+            slotNum = self.getQueryStrParam("slotNum")
+            result = database.removeSlot(slotNum)
+            self.responseJsonData({"result":result})
+
         if self.path.find("stopTask") !=-1:
             slotNum = self.getQueryStrParam("slotNum")
             slotInfo = database.getSlotInfo(slotNum)
@@ -83,6 +130,10 @@ class myHandler(BaseHTTPRequestHandler):
 
         if self.path.find("getCompanyList") !=-1:
             result = database.getQueryResultAll("SELECT * FROM company")
+            self.responseJsonData(result)
+
+        if self.path.find("getTemplateList") !=-1:
+            result = database.getQueryResultAll("SELECT * FROM template order by id asc")
             self.responseJsonData(result)
 
         if self.path.find("getDetailExport") !=-1:
