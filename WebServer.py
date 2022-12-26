@@ -38,7 +38,7 @@ class myHandler(BaseHTTPRequestHandler):
             return self.wfile.write(json.dumps(data,cls=DateEncoder).encode())
 
     def getQueryStrParam(self, key):
-        qs_dict = parse_qs(self.path[1:])
+        qs_dict = parse_qs(self.path[1:], keep_blank_values=True)
         return qs_dict[key][0]
 
     def dowload(self, realPath, mimetype):
@@ -51,6 +51,58 @@ class myHandler(BaseHTTPRequestHandler):
         f.close()
 
     def do_GET(self):
+
+        if self.path.find("createTemplate") !=-1:
+            templateName = self.getQueryStrParam("templateName")
+            bankId = self.getQueryStrParam("bankId")
+            sheetName = self.getQueryStrParam("sheetName")
+            skipFirstRows = self.getQueryStrParam("skipFirstRows")
+            skipLastRows = self.getQueryStrParam("skipLastRows")
+            trasactionTime = self.getQueryStrParam("trasactionTime")
+            income = self.getQueryStrParam("income")
+            expense = self.getQueryStrParam("expense")
+            balance = self.getQueryStrParam("balance")
+            customerAccountName = self.getQueryStrParam("customerAccountName")
+            customerAccountNum = self.getQueryStrParam("customerAccountNum")
+            customerBankName = self.getQueryStrParam("customerBankName")
+            transactionId = self.getQueryStrParam("transactionId")
+            summary = self.getQueryStrParam("summary")
+            timeFormat = self.getQueryStrParam("timeFormat")
+            result = database.createTemplate(templateName,
+                                             bankId,
+                                             sheetName,
+                                             skipFirstRows,
+                                             skipLastRows,
+                                             trasactionTime,
+                                             income,
+                                             expense,
+                                             balance,
+                                             customerAccountName,
+                                             customerAccountNum,
+                                             customerBankName,
+                                             transactionId,
+                                             summary,
+                                             timeFormat)
+            self.responseJsonData({"result":result})
+
+        if self.path.find("updateCompany") !=-1:
+            id = self.getQueryStrParam("id")
+            name = self.getQueryStrParam("name")
+            result = database.updateCompany(id, name)
+            self.responseJsonData({"result":result})
+
+        if self.path.find("updateAccount") !=-1:
+            id = self.getQueryStrParam("id")
+            loginAccount = self.getQueryStrParam("loginAccount")
+            companyId = self.getQueryStrParam("companyId")
+            shortName = self.getQueryStrParam("shortName")
+            accountNum = self.getQueryStrParam("accountNum")
+            loginPwd = self.getQueryStrParam("loginPwd")
+            confirmPwd = self.getQueryStrParam("confirmPwd")
+            bankId = self.getQueryStrParam("bankId")
+            templateId = self.getQueryStrParam("templateId")
+            result = database.updateAccount(id, loginAccount, companyId, shortName, accountNum, loginPwd, confirmPwd, bankId, templateId)
+            self.responseJsonData({"result":result})
 
         if self.path.find("createAccount") !=-1:
             companyId = self.getQueryStrParam("companyId")
@@ -133,7 +185,7 @@ class myHandler(BaseHTTPRequestHandler):
             self.responseJsonData(result)
 
         if self.path.find("getTemplateList") !=-1:
-            result = database.getQueryResultAll("SELECT * FROM template order by id asc")
+            result = database.getQueryResultAll("SELECT t.*, b.`name` as bank_name FROM template as t, bank as b where t.bank_id = b.id order by id asc")
             self.responseJsonData(result)
 
         if self.path.find("getDetailExport") !=-1:

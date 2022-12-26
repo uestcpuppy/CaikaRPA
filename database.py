@@ -101,6 +101,10 @@ def createCompany(name):
     con.close()
     return True
 
+def updateCompany(id, name):
+    sql = "UPDATE company SET name = '"+name+"' where id = "+id
+    return query(sql)
+
 def removeCompany(companyId):
     sql = "delete from company where id = "+companyId
     return query(sql)
@@ -127,6 +131,38 @@ def removeSlot(slotNum):
     sql = "delete from slot where slot_num = "+slotNum
     return query(sql)
 
+def createTemplate(templateName,bankId,sheetName, skipFirstRows, skipLastRows,trasactionTime,income,expense,balance,customerAccountName,customerAccountNum,customerBankName,transactionId,summary,timeFormat):
+    # 1. 创建数据库连接对象
+    con = getDb()
+    # 2. 通过连接对象获取游标
+    with con.cursor() as cursor:
+            try:
+                # 3. 通过游标执行SQL并获得执行结果
+                sql = "INSERT INTO `template` VALUES (NULL, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')"%(templateName,
+                                                                                                                                      bankId,
+                                                                                                                                      sheetName,
+                                                                                                                                      skipFirstRows,
+                                                                                                                                      skipLastRows,
+                                                                                                                                      trasactionTime,
+                                                                                                                                      income,
+                                                                                                                                      expense,
+                                                                                                                                      balance,
+                                                                                                                                      customerAccountName,
+                                                                                                                                      customerAccountNum,
+                                                                                                                                      customerBankName,
+                                                                                                                                      transactionId,
+                                                                                                                                      summary,
+                                                                                                                                      timeFormat)
+                result = cursor.execute(sql)
+                # 4. 操作成功提交事务
+                con.commit()
+            except Exception as e:
+                con.rollback()
+                return False
+    # 5. 关闭连接释放资源
+    con.close()
+    return True
+
 def removeTemplate(id):
     sql = "delete from template where id = "+id
     return query(sql)
@@ -148,6 +184,18 @@ def createAccount(companyId, shortName, accountNum, loginAccount, loginPwd, conf
     # 5. 关闭连接释放资源
     con.close()
     return True
+
+def updateAccount(id, loginAccount, companyId, shortName ,accountNum, loginPwd, confirmPwd, bankId, templateId):
+    sql = "UPDATE account SET short_name = '"+shortName+"'"
+    sql = sql + ",account_num = '"+accountNum+"'"
+    sql = sql + ",login_pwd = '"+loginPwd+"'"
+    sql = sql + ",confirm_pwd = '"+confirmPwd+"'"
+    sql = sql + ",bank_id = '" + bankId + "'"
+    sql = sql + ",template_id = '" + templateId + "'"
+    sql = sql + ",company_id = '" + companyId + "'"
+    sql = sql + ",login_account = '" + loginAccount + "'"
+    sql = sql + " WHERE id = "+id
+    return query(sql)
 
 def removeAccount(id):
     sql = "delete from account where id = "+id
