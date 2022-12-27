@@ -52,13 +52,33 @@ class myHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
 
+        if self.path.find("updateTemplate") !=-1:
+            id = self.getQueryStrParam("id")
+            templateName = self.getQueryStrParam("templateName")
+            bankId = self.getQueryStrParam("bankId")
+            sheetName = self.getQueryStrParam("sheetName")
+            skipFirstRows = self.getQueryStrParam("skipFirstRows")
+            skipLastRows = self.getQueryStrParam("skipLastRows")
+            transactionTime = self.getQueryStrParam("transactionTime")
+            income = self.getQueryStrParam("income")
+            expense = self.getQueryStrParam("expense")
+            balance = self.getQueryStrParam("balance")
+            customerAccountName = self.getQueryStrParam("customerAccountName")
+            customerAccountNum = self.getQueryStrParam("customerAccountNum")
+            customerBankName = self.getQueryStrParam("customerBankName")
+            transactionId = self.getQueryStrParam("transactionId")
+            summary = self.getQueryStrParam("summary")
+            timeFormat = self.getQueryStrParam("timeFormat")
+            result = database.updateTemplate(id, templateName, bankId, sheetName, skipFirstRows, skipLastRows, transactionTime, income, expense, balance,customerAccountName, customerAccountNum, customerBankName, transactionId, summary, timeFormat)
+            self.responseJsonData({"result":result})
+
         if self.path.find("createTemplate") !=-1:
             templateName = self.getQueryStrParam("templateName")
             bankId = self.getQueryStrParam("bankId")
             sheetName = self.getQueryStrParam("sheetName")
             skipFirstRows = self.getQueryStrParam("skipFirstRows")
             skipLastRows = self.getQueryStrParam("skipLastRows")
-            trasactionTime = self.getQueryStrParam("trasactionTime")
+            transactionTime = self.getQueryStrParam("transactionTime")
             income = self.getQueryStrParam("income")
             expense = self.getQueryStrParam("expense")
             balance = self.getQueryStrParam("balance")
@@ -73,7 +93,7 @@ class myHandler(BaseHTTPRequestHandler):
                                              sheetName,
                                              skipFirstRows,
                                              skipLastRows,
-                                             trasactionTime,
+                                             transactionTime,
                                              income,
                                              expense,
                                              balance,

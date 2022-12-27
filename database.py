@@ -131,7 +131,7 @@ def removeSlot(slotNum):
     sql = "delete from slot where slot_num = "+slotNum
     return query(sql)
 
-def createTemplate(templateName,bankId,sheetName, skipFirstRows, skipLastRows,trasactionTime,income,expense,balance,customerAccountName,customerAccountNum,customerBankName,transactionId,summary,timeFormat):
+def createTemplate(templateName,bankId,sheetName, skipFirstRows, skipLastRows,transactionTime,income,expense,balance,customerAccountName,customerAccountNum,customerBankName,transactionId,summary,timeFormat):
     # 1. 创建数据库连接对象
     con = getDb()
     # 2. 通过连接对象获取游标
@@ -143,7 +143,7 @@ def createTemplate(templateName,bankId,sheetName, skipFirstRows, skipLastRows,tr
                                                                                                                                       sheetName,
                                                                                                                                       skipFirstRows,
                                                                                                                                       skipLastRows,
-                                                                                                                                      trasactionTime,
+                                                                                                                                      transactionTime,
                                                                                                                                       income,
                                                                                                                                       expense,
                                                                                                                                       balance,
@@ -162,6 +162,26 @@ def createTemplate(templateName,bankId,sheetName, skipFirstRows, skipLastRows,tr
     # 5. 关闭连接释放资源
     con.close()
     return True
+
+
+def updateTemplate(id,templateName,bankId,sheetName,skipFirstRows,skipLastRows,transactionTime,income,expense,balance,customerAccountName,customerAccountNum,customerBankName,transactionId,summary,timeFormat):
+    sql = "UPDATE template SET name = '"+templateName+"'"
+    sql = sql + ",bank_id = '"+bankId+"'"
+    sql = sql + ",sheet_name= '"+sheetName+"'"
+    sql = sql + ",skip_firstrows = '"+skipFirstRows+"'"
+    sql = sql + ",skip_lastrows = '"+skipLastRows+"'"
+    sql = sql + ",transaction_time = '" + transactionTime + "'"
+    sql = sql + ",income = '" + income + "'"
+    sql = sql + ",expense = '" + expense + "'"
+    sql = sql + ",balance = '" + balance + "'"
+    sql = sql + ",customer_account_name = '" + customerAccountName + "'"
+    sql = sql + ",customer_account_num = '" + customerAccountNum + "'"
+    sql = sql + ",customer_bank_name = '" + customerBankName + "'"
+    sql = sql + ",transaction_id = '" + transactionId + "'"
+    sql = sql + ",summary = '" + summary + "'"
+    sql = sql + ",time_format = '" + timeFormat + "'"
+    sql = sql + " WHERE id = "+id
+    return query(sql)
 
 def removeTemplate(id):
     sql = "delete from template where id = "+id

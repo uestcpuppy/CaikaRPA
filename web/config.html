@@ -135,7 +135,7 @@
       <div><span>SHEET_NAME:</span><input name="sheetName"/></div>
       <div><span>SKIP_FIRSTROWS:</span><input name="skipFirstRows"/></div>
       <div><span>SKIP_LASTROWS:</span><input name="skipLastRows"/></div>
-      <div><span>TRANSACTION_TIME:</span><input name="trasactionTime"/></div>
+      <div><span>TRANSACTION_TIME:</span><input name="transactionTime"/></div>
       <div><span>INCOME:</span><input name="income" /></div>
       <div><span>EXPENSE:</span><input name="expense" /></div>
       <div><span>BALANCE:</span><input name="balance" /></div>
@@ -145,7 +145,7 @@
       <div><span>TRANSACTION_ID:</span><input name="transactionId" /></div>
       <div><span>SUMMARY:</span><input name="summary" /></div>
       <div><span>TIME_FORMAT:</span><input name="timeFormat" /></div>
-      <div><input  id="addTemplate" type="button" value="新增"/></div>
+      <div><input  id="addTemplate" type="button" value="新增"/><input  id="updateTemplate" type="button" value="更新"/></div>
     </div>
     <table id="tb_template"></table>
   </div>
@@ -374,7 +374,7 @@
                         $("#tb_template").append("<tr>\
                         <td>"+value["id"]+"</td>\
                         <td>"+value["name"]+"</td>\
-                        <td>"+value["bank_name"]+"</td>\
+                        <td bankId="+value["bank_id"]+">"+value["bank_name"]+"</td>\
                         <td>"+value["sheet_name"]+"</td>\
                         <td>"+value["skip_firstrows"]+"</td>\
                         <td>"+value["skip_lastrows"]+"</td>\
@@ -388,7 +388,7 @@
                         <td>"+value["transaction_id"]+"</td>\
                         <td>"+value["summary"]+"</td>\
                         <td>"+value["time_format"]+"</td>\
-                        <td><input type='button' value='编辑'/><input type='button' value='删除'/></td>\
+                        <td><input type='button' name='update' value='编辑'/><input type='button' name='delete' value='删除'/></td>\
                         </tr>");
                     });
                 });
@@ -396,7 +396,42 @@
 
             loadTableTemplate()
 
-            $("#tb_template input").click(function(){
+            $("#tb_template input[name='update']").click(function(){
+                currentElement = $(this).parent().siblings(":first")
+                $("#templateForm input[name='id']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='templateName']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateBankId").val(currentElement.attr("bankId"))
+                currentElement = currentElement.next()
+                $("#templateForm input[name='sheetName']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='skipFirstRows']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='skipLastRows']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='transactionTime']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='income']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='expense']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='balance']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='customerAccountName']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='customerAccountNum']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='customerBankName']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='transactionId']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='summary']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='timeFormat']").val(currentElement.text())
+            })
+
+            $("#tb_template input[name='delete']").click(function(){
                 var id = $(this).parent().siblings(":first").text()
                 if(confirm("确定要删除么?"))
                 {
@@ -428,7 +463,31 @@
                 url = url + "&sheetName="+$("#templateForm input[name='sheetName']").val()
                 url = url + "&skipFirstRows="+$("#templateForm input[name='skipFirstRows']").val()
                 url = url + "&skipLastRows="+$("#templateForm input[name='skipLastRows']").val()
-                url = url + "&trasactionTime="+$("#templateForm input[name='trasactionTime']").val()
+                url = url + "&transactionTime="+$("#templateForm input[name='transactionTime']").val()
+                url = url + "&income="+$("#templateForm input[name='income']").val()
+                url = url + "&expense="+$("#templateForm input[name='expense']").val()
+                url = url + "&balance="+$("#templateForm input[name='balance']").val()
+                url = url + "&customerAccountName="+$("#templateForm input[name='customerAccountName']").val()
+                url = url + "&customerAccountNum="+$("#templateForm input[name='customerAccountNum']").val()
+                url = url + "&customerBankName="+$("#templateForm input[name='customerBankName']").val()
+                url = url + "&transactionId="+$("#templateForm input[name='transactionId']").val()
+                url = url + "&summary="+$("#templateForm input[name='summary']").val()
+                url = url + "&timeFormat="+$("#templateForm input[name='timeFormat']").val()
+                $.getJSON(url,function(data){
+                      msg(data["result"])
+                      window.location.reload()
+                });
+            })
+
+            $("#updateTemplate").click(function(){
+                var url = "/updateTemplate"
+                url = url + "&id="+$("#templateForm input[name='id']").val()
+                url = url + "&templateName="+$("#templateForm input[name='templateName']").val()
+                url = url + "&bankId="+$("#templateBankId option:selected").val()
+                url = url + "&sheetName="+$("#templateForm input[name='sheetName']").val()
+                url = url + "&skipFirstRows="+$("#templateForm input[name='skipFirstRows']").val()
+                url = url + "&skipLastRows="+$("#templateForm input[name='skipLastRows']").val()
+                url = url + "&transactionTime="+$("#templateForm input[name='transactionTime']").val()
                 url = url + "&income="+$("#templateForm input[name='income']").val()
                 url = url + "&expense="+$("#templateForm input[name='expense']").val()
                 url = url + "&balance="+$("#templateForm input[name='balance']").val()
