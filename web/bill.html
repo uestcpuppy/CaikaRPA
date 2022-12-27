@@ -118,7 +118,7 @@
                         i = n+1
                         $("#tb").append("<tr>\
                         <td><input type='checkbox' id='cb_"+i+"' checked='true' executionId='"+value["execution_id"]+"' /></td>\
-                        <td>"+i+"</td><td>"+value["short_name"]+"</td>\
+                        <td>"+value["slot_num"]+"</td><td>"+value["short_name"]+"</td>\
                         <td>"+value["name"]+"</td>\
                         <td><input type='date' id='begin_"+i+"' value="+value["query_begin_date"]+"></td>\
                         <td><input type='date' id='end_"+i+"' value="+value["query_end_date"]+"></td>\
@@ -261,7 +261,8 @@
               clearInterval(currentTimer)
                 $("input[type=checkbox]").each(function(i){
                  if ($(this).prop("checked")){
-                        toRunSlotArray.push(i+1)
+                        tempSlotNum = $(this).parent().siblings(":first").text()
+                        toRunSlotArray.push(tempSlotNum)
                       }
                  });
               currentSlotNum = 0;

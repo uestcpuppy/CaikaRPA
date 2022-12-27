@@ -1,7 +1,7 @@
 <!DOCTYPE html >
 <html>
   <head>
-    <title>财咖网银助手v1.0 - 配置管理</title>
+    <title>财咖网银助手-系统配置</title>
     <meta charset="utf-8">
     <style>
       .divCls {
@@ -10,9 +10,17 @@
       }
       .form {
         border: 1px solid #ccc;
-        padding: 10px;
-        width: 50%;
+        padding: 10px 200px 10px 10px;
+        width: 30%;
         font-weight: 400;
+        display: flex;
+        align-content: space-between;
+        justify-content: space-around;
+        align-items: flex-end;
+        flex-direction: column;
+      }
+      select {
+        width: 170px;
       }
 
       .form span {
@@ -100,7 +108,12 @@
   </head>
 <body>
   <div class="divCls">
-    <h2>一、收付组织配置</h2>
+    <h1>财咖网银助手系统配置</h1>
+    <h2>一、公司主体配置</h2>
+    <h4>操作说明:</h4>
+    <p>
+      通常一个集团公司可能有N个公司主体, 所以可在此创建多个公司主体。
+    </p>
     <div id="companyForm" class="form">
       <div><span>ID:</span><input name="id" readonly="readonly"/></div>
       <div><span>公司名称:</span><input name="name"/></div>
@@ -111,6 +124,12 @@
 
   <div class="divCls">
     <h2>二、银行账户配置</h2>
+    <h4>操作说明:</h4>
+    <p>
+      一个公司主体下, 可能有N个银行账户。</br>
+      每个账户具有所属公司、账户简称、银行账号、登录账号、登录密码、优盾密码、所属银行、流水模板8个属性。</br>
+      其中, <b>登录密码和优盾密码要输入加密后的值</b>。所属公司、流水模板需提前配置好才能选择。
+    </p>
     <div id="accountForm" class="form">
       <div><span>ID:</span><input name="id" readonly="readonly"/></div>
       <div><span>所属公司:</span><select id="companyId"></select></div>
@@ -128,6 +147,26 @@
 
   <div class="divCls">
     <h2>三、银行模板配置</h2>
+    <h4>操作说明:</h4>
+    <p>
+      银行模板配置用于导入银行流水时, 系统能够找到正确的字段。</br>
+      字段说明：</br>
+      模板名称 - 模板名称</br>
+      所属银行 - 模板对应的一个银行</br>
+      SHEET_NAME - 如果时第一个Sheet填0, 第2个填1, 以此类推。</br>
+      SKIP_FIRSTROWS - 开始要跳过的行数, 比如要跳过10行数据则填10</br>
+      SKIP_LASTROWS - 结尾要跳过的行数, 比如最后5行需要跳过, 则填5</br>
+      TRANSACTION_TIME - 交易时间字段对应的列号, 比如对应第5列则填5</br>
+      INCOME - 收入字段对应的列号</br>
+      EXPENSE - 支出字段对应的列号</br>
+      BALANCE - 余额字段对应的列号</br>
+      CUSTOMER_ACCOUNT_NAME - 对方账户名称对应的列号</br>
+      CUSTOMER_ACCOUNT_NUM - 对方账户对应的列号</br>
+      CUSTOMER_BANK_NAME - 对方开户银行对应的列号</br>
+      TRANSACTION_ID - 交易流水号对应的列号</br>
+      SUMMARY - 摘要对应的列号</br>
+      TIME_FORMAT - 交易时间的格式, 例如: %Y-%m-%d %H:%M:%S</br>
+    </p>
     <div id="templateForm" class="form">
       <div><span>ID:</span><input name="id" readonly="readonly"/></div>
       <div><span>模板名称:</span><input name="templateName"/></div>
@@ -152,6 +191,12 @@
 
   <div class="divCls">
     <h2>四、UsbHub配置</h2>
+    <h4>操作说明:</h4>
+    <p>
+      一个UsbHub最多可配置30个银行账户。</br>
+      例如想要指定第一个USB插槽对应ID为10的银行账户</br>
+      则新增一条配置信息, SlotNum填1, AccountID填10
+    </p>
     <div id="slotForm" class="form">
       <div><span>SlotNum:</span><input name="slotNum"/></div>
       <div><span>AccountID:</span><input name="accountId"/></div>
