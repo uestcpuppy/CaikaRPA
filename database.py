@@ -10,7 +10,7 @@ def getDb():
     config={
         "host":"localhost",
         "user":"root",
-        "password":"chenxi19821220",
+        "password":"caika2020",
         "database":"caika",
         "cursorclass": pymysql.cursors.DictCursor
     }
