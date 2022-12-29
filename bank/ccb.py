@@ -108,6 +108,7 @@ class ccb(Bank):
     # self.waitElementLoad(self.Webdriver, By.XPATH, '/html/body/form/div[2]/div/input[1]', 5)
     self.Webdriver.find_element(By.XPATH, '/html/body/form/div[2]/div/input[1]').send_keys(Keys.END)
     self.logger.info("点击确定")
+    time.sleep(2)
     self.Webdriver.find_element(By.XPATH, '/html/body/form/div[2]/div/input[1]').click()
     self.logger.info("结束查询")
     return True
