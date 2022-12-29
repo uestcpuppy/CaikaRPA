@@ -1,7 +1,7 @@
 @echo off
 %1 start "" mshta vbscript:CreateObject("Shell.Application").ShellExecute("cmd.exe","/c pushd ""%~dp0"" && ""%~s0"" ::","","runas",1)(window.close)&&exit
 echo 设置python环境变量
-setx PATH "%PATH%;D:\caika\python37; D:\caika\python37\Scripts"
+setx PATH "D:\caika\python37;D:\caika\python37\Scripts;%PATH%;" /m
 echo 将mysql设置为系统服务
 D:\caika\mysql-8.0.31\bin\mysqld --install
 echo 启动mysql
