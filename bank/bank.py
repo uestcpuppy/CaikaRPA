@@ -102,6 +102,7 @@ class Bank:
                 'profile.default_content_settings.popups': 0,
                 'download.default_directory': self.DownloadTempPath
             }
+            options.add_argument("--ignore-certificate-errors")
             options.add_experimental_option('prefs', prefs)
             # options.add_argument("--headless")
             options.add_experimental_option("excludeSwitches", ['enable-automation'])

@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 from selenium.webdriver.common.keys import Keys
+import ait
 
 import uiautomation as auto
 
@@ -36,6 +37,7 @@ class ccb(Bank):
     WebDriverWait(self.Webdriver, 10, 0.2).until(
         EC.element_to_be_clickable((By.ID, 'jumpBtn')))
     self.logger.info("点击开始登录按钮")
+    # time.sleep(3)
     # self.Webdriver.find_element(By.ID, 'jumpBtn').click()
     uiautomation.ButtonControl(AutomationId="jumpBtn").Click()
     time.sleep(3)
@@ -61,7 +63,9 @@ class ccb(Bank):
     WebDriverWait(self.Webdriver, 10, 0.2).until(
         EC.element_to_be_clickable((By.ID, 'LOG_PWD')))
     self.logger.info("点击密码框")
-    self.Webdriver.execute_script('document.querySelector("#LOG_PWD").focus()')
+    # self.Webdriver.execute_script('document.querySelector("#LOG_PWD").focus()')
+    # time.sleep(1)
+    self.Webdriver.find_element(By.ID, 'LOG_PWD').click()
     time.sleep(1)
     self.sendkeysRemote(self.LoginPasswd)
     time.sleep(2)
@@ -105,7 +109,6 @@ class ccb(Bank):
     self.Webdriver.execute_script(js)
     time.sleep(2)
     self.logger.info("切换到页面最后")
-    # self.waitElementLoad(self.Webdriver, By.XPATH, '/html/body/form/div[2]/div/input[1]', 5)
     self.Webdriver.find_element(By.XPATH, '/html/body/form/div[2]/div/input[1]').send_keys(Keys.END)
     self.logger.info("点击确定")
     time.sleep(2)
@@ -116,10 +119,12 @@ class ccb(Bank):
       self.logger.info("开始下载")
       self.logger.info("点击下载全部")
       # self.waitElementLoad(self.Webdriver, By.ID, "dlAll", 5)
-      # WebDriverWait(self.Webdriver, 15, 0.2).until(EC.element_to_be_clickable((By.ID, "dlAll")))
-      self.Webdriver.find_element(By.ID, 'dlAll').click()
-      self.logger.info("点击Excel下载")
-      self.Webdriver.find_element(By.XPATH, '/html/body/div[5]/ul/li[2]').click()
+      WebDriverWait(self.Webdriver, 15, 0.2).until(EC.element_to_be_clickable((By.ID, "dlAll")))
+      # self.Webdriver.find_element(By.ID, 'dlAll').click()
+      # time.sleep(2)
+      self.logger.info("下载Excel")
+      self.Webdriver.execute_script("submitSelect('1', '2', 'selectDownLoadDiv')")
+      # self.Webdriver.find_element(By.XPATH, '/html/body/div[5]/ul/li[2]').click()
       time.sleep(5)
       downloadFile = self.processDownloadFile()
       if downloadFile == "":
@@ -133,7 +138,7 @@ class ccb(Bank):
       self.Webdriver.quit()
       return True
   def run(self):
-      time.sleep(5)
+      # time.sleep(5)
       self.login()
       self.query()
       self.download()
