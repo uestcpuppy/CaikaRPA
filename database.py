@@ -452,12 +452,28 @@ def importBankXls(account_id, filePath):
         rowData = df.loc[i].to_list()
         detailDict = {}
         detailDict["account_id"] = account_id
-        rawDateTime = rowData[accountInfo["transaction_time"]-1]
+
+        dtList = accountInfo["transaction_time"].split(',')
+        dtStr = ""
+        for i in dtList:
+            dtStr = dtStr + str(rowData[int(i)-1]) + " "
+        dtStr = dtStr.strip()
+
+        # rawDateTime = rowData[accountInfo["transaction_time"]-1]
+        rawDateTime = dtStr
+
         dt = datetime.datetime.strptime(rawDateTime, accountInfo["time_format"])
         detailDict["transaction_time"] = dt.strftime("%Y-%m-%d %H:%M:%S")
-        detailDict["income"] = rowData[accountInfo["income"]-1]
-        detailDict["expense"] = rowData[accountInfo["expense"]-1]
-        detailDict["balance"] = rowData[accountInfo["balance"]-1]
+        if(rowData[accountInfo["income"]-1] > 0):
+            detailDict["income"] = rowData[accountInfo["income"] - 1]
+        else:
+            detailDict["income"] = 0
+
+        if(detailDict["income"] == 0):
+            detailDict["expense"] = abs(rowData[accountInfo["expense"] - 1])
+        else:
+            detailDict["expense"] = 0
+        detailDict["balance"] = rowData[accountInfo["balance"]-1].replace(",","")
         detailDict["customer_account_name"] = rowData[accountInfo["customer_account_name"]-1]
         detailDict["customer_account_num"] = rowData[accountInfo["customer_account_num"]-1]
         detailDict["customer_bank_name"] = rowData[accountInfo["customer_bank_name"]-1]

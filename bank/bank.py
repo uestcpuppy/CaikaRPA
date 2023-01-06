@@ -119,7 +119,7 @@ class Bank:
         elif self.Browser == "IeInEdge":
             ie_options = webdriver.IeOptions()
             ie_options.ignore_zoom_level = True
-            ie_options.attach_to_edge_chrome = True
+            # ie_options.attach_to_edge_chrome = True
             ie_options.edge_executable_path = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
             ie_options.page_load_strategy = "none"
             # driver = webdriver.Ie(executable_path=r"D:\\Python37\\Scripts\\IEDriverServer.exe", options=ie_options)
