@@ -121,7 +121,8 @@ class Bank:
             ie_options.ignore_zoom_level = True
             # ie_options.attach_to_edge_chrome = True
             ie_options.edge_executable_path = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
-            ie_options.page_load_strategy = "none"
+            ie_options.page_load_strategy = "normal"
+            ie_options.ignore_protected_mode_settings = True
             # driver = webdriver.Ie(executable_path=r"D:\\Python37\\Scripts\\IEDriverServer.exe", options=ie_options)
             driver = webdriver.Ie(options=ie_options)
             self.Webdriver = driver
@@ -129,7 +130,6 @@ class Bank:
         self.Webdriver.maximize_window()
         #find_element隐式等待时间
         self.Webdriver.implicitly_wait(config.IMPLICITLY_WAIT)
-        #
         self.Webdriver.set_script_timeout(config.SCRIPT_TIMEOUT)
 
     def highlight(self,element):
@@ -226,17 +226,6 @@ class Bank:
                 return True
         raise Exception("WaitElement timeout")
 
-    def waitSwitchFrame(self, webdriver, byWhich, elementValue, seconds):
-        for i in range(seconds * 5):
-            try:
-                webdriver.switch_to.frame(webdriver.find_element(byWhich, elementValue))
-            except Exception as e:
-                # print("尚未切换",elementValue)
-                time.sleep(0.2)
-            else:
-                # print("已经切换")
-                return True
-        raise Exception("SwitchFrame timeout")
 
 if __name__ == '__main__':
     a = Bank()
