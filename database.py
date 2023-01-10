@@ -187,6 +187,10 @@ def removeTemplate(id):
     sql = "delete from template where id = "+id
     return query(sql)
 
+def getTemplateList():
+    sql = "SELECT t.*, b.`name` as bank_name FROM template as t, bank as b where t.bank_id = b.id order by id asc"
+    return getQueryResultAll(sql)
+
 def createAccount(companyId, shortName, accountNum, loginAccount, loginPwd, confirmPwd, bankId, templateId):
     # 1. 创建数据库连接对象
     con = getDb()

@@ -15,6 +15,8 @@ import os
 
 LOG_PATH = config.PROJECT_ROOT + "rpa.log"
 
+EXPIRE_DATE = "2023-01-19"
+
 class DateEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
@@ -51,6 +53,15 @@ class myHandler(BaseHTTPRequestHandler):
         f.close()
 
     def do_GET(self):
+
+        #判断是否在有效期间内
+        s1 = datetime.datetime.strptime(EXPIRE_DATE, "%Y-%m-%d").date()
+        s2 = datetime.date.today()
+        if(s1<s2):
+            return self.responseJsonData({"result": False, "msg":"Xi Tong Shou Quan Yi Guo Qi", "expire_date":EXPIRE_DATE})
+
+        if self.path.find("getExpireDate") !=-1:
+            self.responseJsonData({"result":EXPIRE_DATE})
 
         if self.path.find("updateTemplate") !=-1:
             id = self.getQueryStrParam("id")
@@ -205,7 +216,7 @@ class myHandler(BaseHTTPRequestHandler):
             self.responseJsonData(result)
 
         if self.path.find("getTemplateList") !=-1:
-            result = database.getQueryResultAll("SELECT t.*, b.`name` as bank_name FROM template as t, bank as b where t.bank_id = b.id order by id asc")
+            result = database.getTemplateList()
             self.responseJsonData(result)
 
         if self.path.find("getDetailExport") !=-1:

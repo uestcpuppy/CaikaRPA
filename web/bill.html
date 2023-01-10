@@ -8,6 +8,13 @@
   max-width: 100%
 }
 
+#license
+{
+  font-weight:bold;
+  float: right;
+  color:#cccccc;
+}
+
 </style>
   <script type="text/javascript"src="jquery.min.js"></script>
   <script type="text/javascript" src="jquery.modal.min.js"></script>
@@ -40,6 +47,7 @@
       <input type="button" id="import" value="导入流水"/>
       <span id="usb"></span>
       <span id="info" class="info"></span>
+      <span id="license"></span>
     </form>
     </div>
 
@@ -141,7 +149,12 @@
                         }
                     });
                 });
+
+                $.getJSON("/getExpireDate",function(data){
+                    $("#license").text("授权有效期至"+data["result"])
+                });
             }
+
             $("#import").click(function(){
                $.ajaxSettings.async = true;
                var importExecutionIds = new Array()

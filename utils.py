@@ -71,12 +71,11 @@ def getLastLog(filePath, lastCount=500):
         return "".join(lines[(total-lastCount):])
 
 if __name__ == '__main__':
-    closeButton = auto.PaneControl(Name="温馨提示", Depth=1, searchInterval=0.2)
-    if closeButton.Exists(5, 0.2):
-        closeButton.SetActive()
-        closeButton.Click(y=-50)
-    else:
-        print ("not found")
+    s1 = datetime.datetime.strptime("2023-01-09", "%Y-%m-%d").date()
+    s2 = datetime.date.today()
+    print(s1)
+    print (s2)
+    print (s1 < s2)
 
 
 
