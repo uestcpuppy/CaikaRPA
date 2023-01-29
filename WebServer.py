@@ -12,10 +12,11 @@ import shutil
 import re
 from io import BytesIO
 import os
+import base64
 
 LOG_PATH = config.PROJECT_ROOT + "rpa.log"
 
-EXPIRE_DATE = "2023-01-19"
+EXPIRE_DATE = "2023-05-01"
 
 class DateEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -129,7 +130,9 @@ class myHandler(BaseHTTPRequestHandler):
             shortName = self.getQueryStrParam("shortName")
             accountNum = self.getQueryStrParam("accountNum")
             loginPwd = self.getQueryStrParam("loginPwd")
+            loginPwd = base64.b64encode(str.encode(loginPwd)).decode()
             confirmPwd = self.getQueryStrParam("confirmPwd")
+            confirmPwd = base64.b64encode(str.encode(confirmPwd)).decode()
             bankId = self.getQueryStrParam("bankId")
             templateId = self.getQueryStrParam("templateId")
             result = database.updateAccount(id, loginAccount, companyId, shortName, accountNum, loginPwd, confirmPwd, bankId, templateId)
@@ -141,7 +144,9 @@ class myHandler(BaseHTTPRequestHandler):
             accountNum = self.getQueryStrParam("accountNum")
             loginAccount = self.getQueryStrParam("loginAccount")
             loginPwd = self.getQueryStrParam("loginPwd")
+            loginPwd = base64.b64encode(str.encode(loginPwd)).decode()
             confirmPwd = self.getQueryStrParam("confirmPwd")
+            confirmPwd = base64.b64encode(str.encode(confirmPwd)).decode()
             bankId = self.getQueryStrParam("bankId")
             templateId = self.getQueryStrParam("templateId")
             result = database.createAccount(companyId, shortName, accountNum, loginAccount, loginPwd, confirmPwd, bankId, templateId)

@@ -13,10 +13,10 @@ if __name__ == '__main__':
     beginDate = sys.argv[3]
     endDate = sys.argv[4]
     slotInfo = database.getSlotInfo(slotNum)
-    # login_pwd = base64.b64decode(str.encode(slotInfo["login_pwd"])).decode()
-    # confirm_pwd = base64.b64decode(str.encode(slotInfo["confirm_pwd"])).decode()
-    login_pwd = slotInfo["login_pwd"]
-    confirm_pwd = slotInfo["confirm_pwd"]
+    login_pwd = base64.b64decode(str.encode(slotInfo["login_pwd"])).decode()
+    confirm_pwd = base64.b64decode(str.encode(slotInfo["confirm_pwd"])).decode()
+    # login_pwd = slotInfo["login_pwd"]
+    # confirm_pwd = slotInfo["confirm_pwd"]
     #任务的状态: READY, RUNNING, FINISHED, FAILED
 
     try:

@@ -321,7 +321,7 @@ def getDetailList(accountId, beginDate, endDate, pageNum=1, pageSize=10000, filt
 
 def getAccountListAll():
     # sql = "SELECT a.id,a.short_name,a.account_num,c.`name` as company_name from account as a,company as c where a.company_id = c.id order by a.company_id"
-    sql = "SELECT a.*,t.`name` as template_name, b.`name` as bank_name,c.`name` as company_name from account as a " \
+    sql = "SELECT a.*,t.`name` as template_name, b.`name` as bank_name,c.`name` as company_name,CAST(FROM_BASE64(login_pwd) as CHAR(100)) as login_pwd_new,CAST(FROM_BASE64(a.confirm_pwd) as CHAR(100)) as confirm_pwd_new from account as a " \
           "LEFT JOIN company as c ON a.company_id = c.id " \
           "LEFT JOIN bank as b on b.id = a.bank_id " \
           "LEFT JOIN template as t ON t.id = a.template_id " \
