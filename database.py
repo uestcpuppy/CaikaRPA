@@ -477,7 +477,10 @@ def importBankXls(account_id, filePath):
             detailDict["expense"] = abs(rowData[accountInfo["expense"] - 1])
         else:
             detailDict["expense"] = 0
-        detailDict["balance"] = rowData[accountInfo["balance"]-1].replace(",","")
+        if isinstance(rowData[accountInfo["balance"]-1], str):
+            detailDict["balance"] = rowData[accountInfo["balance"]-1].replace(",","")
+        else:
+            detailDict["balance"] = rowData[accountInfo["balance"] - 1]
         detailDict["customer_account_name"] = rowData[accountInfo["customer_account_name"]-1]
         detailDict["customer_account_num"] = rowData[accountInfo["customer_account_num"]-1]
         detailDict["customer_bank_name"] = rowData[accountInfo["customer_bank_name"]-1]

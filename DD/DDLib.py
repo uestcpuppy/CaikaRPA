@@ -31,7 +31,7 @@ class DDLib(object):
     def send_keys(self, keys):
         for i in keys:
             self.dd(i)
-            time.sleep(0.6)
+            time.sleep(0.3)
 
     def clickBtn(self):
         self.dd_dll.DD_btn(1)
