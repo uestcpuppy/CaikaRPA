@@ -39,9 +39,6 @@ class DDLib(object):
         self.dd_dll.DD_btn(2)
         time.sleep(1)
 
-    def move(x, y):
-        self.dd_dll.DD_move(x, y)
-
     def down_up(self, code):
         # 进行一组按键。
         self.dd_dll.DD_key(self.vk[code], 1)
