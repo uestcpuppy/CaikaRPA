@@ -39,6 +39,10 @@ class Bank:
         # self.Browser = ""
         #关闭CCB
         self.closeCCBTips()
+        #关闭IE窗口
+        self.closeIE()
+        #关闭邮储窗口
+        self.closePCBC()
         self.DDServer = "127.0.0.1:"+str(config.PORT_NUMBER_DD)
         if self.Browser != "":
             self.initWebdriver()
@@ -158,6 +162,11 @@ class Bank:
         dd.send_keys(str)
         return True
 
+    def moveDD(self, x, y):
+        dd = DDLib
+        dd.move(x,y)
+        return True
+
     def sendkeysRemote(self, str):
         url =  "http://"+self.DDServer + "/action=sendkeys&str="+str
         ret = requests.get(url)
@@ -214,15 +223,24 @@ class Bank:
             closeButton.SetActive()
             closeButton.Click(y=-50)
 
+    def closePCBC(self):
+        closeButton = auto.ButtonControl(AutomationId="1", Depth=2, Name="确定", searchInterval=0.5)
+        if closeButton.Exists(2, 0):
+            closeButton.Click()
+
+    def closeIE(self):
+        os.system("taskkill /F /IM iexplore.exe")
+
+    #这个代码有些问题
     def waitElementLoad(self, webdriver, byWhich, elementValue, seconds):
         for i in range(seconds * 5):
             try:
                 webdriver.find_element(byWhich, elementValue)
             except Exception as e:
-                # print("尚未找到",elementValue)
+                print("尚未找到",elementValue)
                 time.sleep(0.2)
             else:
-                # print("已经找到")
+                print("已经找到")
                 return True
         raise Exception("WaitElement timeout")
 
@@ -231,9 +249,3 @@ if __name__ == '__main__':
     a = Bank()
     r = a.processDownloadFile()
     print (r)
-
-
-
-
-
-

@@ -402,6 +402,7 @@ def createUniqueDetailList(detailList):
                                                                                       detailDict["transaction_id"],
                                                                                       detailDict["summary"])
                 result = cursor.execute(sql)
+
                 # 4. 操作成功提交事务
                 con.commit()
             except Exception as e:
@@ -468,6 +469,15 @@ def importBankXls(account_id, filePath):
 
         dt = datetime.datetime.strptime(rawDateTime, accountInfo["time_format"])
         detailDict["transaction_time"] = dt.strftime("%Y-%m-%d %H:%M:%S")
+
+        #如果income,expense,balance是字符串, 转换为浮点数
+        if isinstance(rowData[accountInfo["income"]-1], str):
+            rowData[accountInfo["income"]-1] = float(rowData[accountInfo["income"] - 1].replace(",", ""))
+        if isinstance(rowData[accountInfo["expense"]-1], str):
+            rowData[accountInfo["expense"]-1] = float(rowData[accountInfo["expense"] - 1].replace(",", ""))
+        if isinstance(rowData[accountInfo["balance"]-1], str):
+            rowData[accountInfo["balance"] - 1] = float(rowData[accountInfo["balance"] - 1].replace(",", ""))
+
         if(rowData[accountInfo["income"]-1] > 0):
             detailDict["income"] = rowData[accountInfo["income"] - 1]
         else:
@@ -477,15 +487,28 @@ def importBankXls(account_id, filePath):
             detailDict["expense"] = abs(rowData[accountInfo["expense"] - 1])
         else:
             detailDict["expense"] = 0
-        if isinstance(rowData[accountInfo["balance"]-1], str):
-            detailDict["balance"] = rowData[accountInfo["balance"]-1].replace(",","")
-        else:
-            detailDict["balance"] = rowData[accountInfo["balance"] - 1]
+
+        detailDict["balance"] = rowData[accountInfo["balance"] - 1]
         detailDict["customer_account_name"] = rowData[accountInfo["customer_account_name"]-1]
         detailDict["customer_account_num"] = rowData[accountInfo["customer_account_num"]-1]
-        detailDict["customer_bank_name"] = rowData[accountInfo["customer_bank_name"]-1]
-        detailDict["transaction_id"] = rowData[accountInfo["transaction_id"]-1]
-        detailDict["summary"] = rowData[accountInfo["summary"]-1]
+
+        if(accountInfo["customer_bank_name"] == 0):
+            detailDict["customer_bank_name"] = ""
+        else:
+            detailDict["customer_bank_name"] = rowData[accountInfo["customer_bank_name"] - 1]
+
+        if(accountInfo["transaction_id"] == 0):
+            detailDict["transaction_id"] = ""
+        else:
+            detailDict["transaction_id"] = rowData[accountInfo["transaction_id"] - 1]
+
+        if(accountInfo["summary"] == 0):
+            detailDict["summary"] = ""
+        else:
+            detailDict["summary"] = rowData[accountInfo["summary"] - 1]
+
+        # detailDict["transaction_id"] = rowData[accountInfo["transaction_id"]-1]
+        # detailDict["summary"] = rowData[accountInfo["summary"]-1]
         detailList.append(detailDict)
     return createUniqueDetailList(detailList)
 
