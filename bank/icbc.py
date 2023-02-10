@@ -5,7 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 
 class icbc(Bank):
-  def __init__(self,  LoginPasswd, ConfirmPasswd, BeginDate, EndDate, BatchId, SlotNum):
+  def __init__(self,  LoginPasswd, ConfirmPasswd ,BeginDate, EndDate, BatchId, SlotNum, LoginAccount):
     self.BankName = "ICBC"
     self.BinPath = ""
     self.LoginUrl = "https://corporbank-simp.icbc.com.cn/icbc/normalbank/index.jsp"
