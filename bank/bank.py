@@ -40,7 +40,7 @@ class Bank:
         #关闭CCB
         self.closeCCBTips()
         #关闭IE窗口
-        self.closeIE()
+        # self.closeIE()
         #关闭邮储窗口
         self.closePCBC()
         self.DDServer = "127.0.0.1:"+str(config.PORT_NUMBER_DD)
@@ -119,7 +119,13 @@ class Bank:
         elif self.Browser == "Ie":
             self.Webdriver = webdriver.Ie()
         elif self.Browser == "Edge":
-            self.Webdriver = webdriver.Edge()
+            options = webdriver.EdgeOptions()
+            prefs = {
+                'profile.default_content_settings.popups': 0,
+                'download.default_directory': self.DownloadTempPath
+            }
+            options.add_experimental_option('prefs', prefs)
+            self.Webdriver = webdriver.Edge(options=options)
         elif self.Browser == "IeInEdge":
             ie_options = webdriver.IeOptions()
             ie_options.ignore_zoom_level = True
@@ -130,6 +136,11 @@ class Bank:
             # driver = webdriver.Ie(executable_path=r"D:\\Python37\\Scripts\\IEDriverServer.exe", options=ie_options)
             driver = webdriver.Ie(options=ie_options)
             self.Webdriver = driver
+
+        #记录当前的PID, IE取不到pid只能用其它方法
+        # filename = config.DATA_ROOT + 'pid.txt'
+        # with open(filename, 'w') as file_object:
+        #     file_object.write(str(self.Webdriver.service.process.pid))
 
         self.Webdriver.maximize_window()
         #find_element隐式等待时间
