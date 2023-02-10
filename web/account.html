@@ -42,6 +42,24 @@
 
         $(function() {
 
+            function bindElement(){
+             $("[name=incomeDetail]").click(function(){
+              filter = "income";
+              accountId = $(this).attr("account_id")
+              currentAccountName = $(this).attr("account_name")
+              initPagination(accountId)
+              $('#detailDiv').modal({clickClose: true,escapeClose: true});
+            })
+
+            $("[name=expenseDetail]").click(function(){
+              filter = "expense";
+              accountId = $(this).attr("account_id")
+              currentAccountName = $(this).attr("account_name")
+              initPagination(accountId)
+              $('#detailDiv').modal({clickClose: true,escapeClose: true});
+            })
+        }
+
             $.ajaxSettings.async = false;
 
             function initPage()
@@ -112,26 +130,12 @@
                     return
                 }
                 loadTable();
+                test();
             })
 
             initPage()
             loadTable()
-
-            $("[name=incomeDetail]").click(function(){
-              filter = "income";
-              accountId = $(this).attr("account_id")
-              currentAccountName = $(this).attr("account_name")
-              initPagination(accountId)
-              $('#detailDiv').modal({clickClose: true,escapeClose: true});
-            })
-
-            $("[name=expenseDetail]").click(function(){
-              filter = "expense";
-              accountId = $(this).attr("account_id")
-              currentAccountName = $(this).attr("account_name")
-              initPagination(accountId)
-              $('#detailDiv').modal({clickClose: true,escapeClose: true});
-            })
+            bindElement()
 
             var pageSize = 15;
             var dataCount = 0;
