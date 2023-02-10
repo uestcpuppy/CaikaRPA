@@ -11,7 +11,7 @@ def getDb():
         "host":"localhost",
         "user":"root",
         "password":"caika2020",
-        "database":"caika",
+        "database":"caika_goski",
         "cursorclass": pymysql.cursors.DictCursor
     }
     db = pymysql.connect(**config)
@@ -472,9 +472,9 @@ def importBankXls(account_id, filePath):
 
         #如果income,expense,balance是字符串, 转换为浮点数
         if isinstance(rowData[accountInfo["income"]-1], str):
-            rowData[accountInfo["income"]-1] = float(rowData[accountInfo["income"] - 1].replace(",", ""))
+            rowData[accountInfo["income"]-1] = float(rowData[accountInfo["income"] - 1].replace(",", "").replace("-","0"))
         if isinstance(rowData[accountInfo["expense"]-1], str):
-            rowData[accountInfo["expense"]-1] = float(rowData[accountInfo["expense"] - 1].replace(",", ""))
+            rowData[accountInfo["expense"]-1] = float(rowData[accountInfo["expense"] - 1].replace(",", "").replace("-","0"))
         if isinstance(rowData[accountInfo["balance"]-1], str):
             rowData[accountInfo["balance"] - 1] = float(rowData[accountInfo["balance"] - 1].replace(",", ""))
 
@@ -514,7 +514,7 @@ def importBankXls(account_id, filePath):
 
 
 if __name__ == '__main__':
-    # res = getDetailList("1", "2022-08-01", "2022-08-31")
+    # importBankXls("105", "D:\\caika\\BOB_1202.xlsx")
     pass
 
 
