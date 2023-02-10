@@ -5,6 +5,12 @@ import urllib
 from DD.DDLib import DDLib
 import os
 import config
+import threading
+def worker():
+    while True:
+        os.system("taskkill /F /IM msedge.exe >nul 2>nul")
+        print('i am working')
+        time.sleep(1)
 
 data_true = {'result': 'ok'}
 data_false = {'result': 'failed'}
@@ -39,6 +45,8 @@ class Resquest(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(data_false).encode())
 
 if __name__ == '__main__':
+    # t = threading.Thread(target=worker,daemon=True)
+    # t.start()
     server = HTTPServer(host, Resquest)
     print("Starting server, listen at: %s:%s" % host)
     server.serve_forever()
