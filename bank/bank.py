@@ -8,6 +8,8 @@ import win32con
 import win32api
 import database
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+import utils
 from DD.DDLib import DDLib
 import shutil
 import requests
@@ -38,11 +40,11 @@ class Bank:
         # #IE, Chrome
         # self.Browser = ""
         #关闭CCB
-        self.closeCCBTips()
+        # self.closeCCBTips()
         #关闭IE窗口
         # self.closeIE()
         #关闭邮储窗口
-        self.closePCBC()
+        # self.closePCBC()
         self.DDServer = "127.0.0.1:"+str(config.PORT_NUMBER_DD)
         if self.Browser != "":
             self.initWebdriver()
@@ -116,8 +118,8 @@ class Bank:
             desired_capabilities["pageLoadStrategy"] = "normal"
             #浦发需要这种模式
             self.Webdriver = webdriver.Chrome(chrome_options=options, desired_capabilities=desired_capabilities)
-        elif self.Browser == "Ie":
-            self.Webdriver = webdriver.Ie()
+        # elif self.Browser == "Ie":
+        #     self.Webdriver = webdriver.Ie()
         elif self.Browser == "Edge":
             options = webdriver.EdgeOptions()
             prefs = {
@@ -137,10 +139,6 @@ class Bank:
             driver = webdriver.Ie(options=ie_options)
             self.Webdriver = driver
 
-        #记录当前的PID, IE取不到pid只能用其它方法
-        # filename = config.DATA_ROOT + 'pid.txt'
-        # with open(filename, 'w') as file_object:
-        #     file_object.write(str(self.Webdriver.service.process.pid))
 
         self.Webdriver.maximize_window()
         #find_element隐式等待时间
@@ -227,20 +225,6 @@ class Bank:
         targetFile = targetDir + fileName
         image.save(targetFile)
         database.updateExecution(self.BatchId, imgFilename=fileName)
-
-    def closeCCBTips(self):
-        closeButton = auto.PaneControl(Name="温馨提示", Depth=1, searchInterval=0.5)
-        if closeButton.Exists(2, 0):
-            closeButton.SetActive()
-            closeButton.Click(y=-50)
-
-    def closePCBC(self):
-        closeButton = auto.ButtonControl(AutomationId="1", Depth=2, Name="确定", searchInterval=0.5)
-        if closeButton.Exists(2, 0):
-            closeButton.Click()
-
-    def closeIE(self):
-        os.system("taskkill /F /IM iexplore.exe")
 
     #这个代码有些问题
     def waitElementLoad(self, webdriver, byWhich, elementValue, seconds):
