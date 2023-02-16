@@ -248,6 +248,7 @@
             }
 
             $("#run").click(function(){
+              $.ajaxSettings.async = false;
               isStopAll = false;
               var isUsbHubWorking = false
               $.getJSON("/getUsbHubStatus",function(data){

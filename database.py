@@ -11,7 +11,7 @@ def getDb():
         "host":"localhost",
         "user":"root",
         "password":"caika2020",
-        "database":"caika_goski",
+        "database":"caika_xiaolidu",
         "cursorclass": pymysql.cursors.DictCursor
     }
     db = pymysql.connect(**config)
@@ -315,7 +315,7 @@ def getDetailList(accountId, beginDate, endDate, pageNum=1, pageSize=10000, filt
     elif filter == "all":
         condition = ""
     offset = (pageNum-1)*pageSize
-    sql = "select * from detail where account_id = '"+ accountId+"' and transaction_time between '"+beginDate+" 00:00:00' and '"+endDate+" 23:59:59' "+condition+" order by id desc limit "+str(offset)+","+str(pageSize)
+    sql = "select * from detail where account_id = '"+ accountId+"' and transaction_time between '"+beginDate+" 00:00:00' and '"+endDate+" 23:59:59' "+condition+" order by transaction_time asc limit "+str(offset)+","+str(pageSize)
     res = getQueryResultAll(sql)
     return res
 
@@ -432,7 +432,7 @@ def exportDetailXls(detailList):
             bankShortName = i["short_name"]
             companyName = i["company_name"]
             lastAccountNum = accountNum
-        sheet1.append([companyName,"",accountNum,bankShortName,"","", str(i["transaction_time"])[0:10],"","","","", income,expense])
+        sheet1.append([companyName,"",accountNum,bankShortName,"","", str(i["transaction_time"])[0:10],"",i["summary"],"","", income,expense])
     filePath = config.DOWNLOAD_TEMP_DIR + "data.xlsx"
     if os.path.exists(filePath):
         os.remove(filePath)
