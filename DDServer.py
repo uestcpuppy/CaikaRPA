@@ -6,15 +6,16 @@ from DD.DDLib import DDLib
 import os
 import config
 import threading
-def worker():
-    while True:
-        os.system("taskkill /F /IM msedge.exe >nul 2>nul")
-        print('i am working')
-        time.sleep(1)
+import utils
+import win32gui
+from win32.lib import win32con
+import win32process
+import psutil
 
 data_true = {'result': 'ok'}
 data_false = {'result': 'failed'}
 host = ('localhost', config.PORT_NUMBER_DD)
+
 
 class Resquest(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -25,7 +26,7 @@ class Resquest(BaseHTTPRequestHandler):
             if self.path.find("favicon") != -1:
                 pass
             else:
-                tempDict =  (urllib.parse.parse_qs(self.path[1:]))
+                tempDict = (urllib.parse.parse_qs(self.path[1:]))
                 # action = sendkeys 或 enter
                 if tempDict["action"][0] == "sendkeys":
                     dd = DDLib()
@@ -34,19 +35,12 @@ class Resquest(BaseHTTPRequestHandler):
                     dd = DDLib()
                     dd.dd_dll.DD_key(815, 1)
                     dd.dd_dll.DD_key(815, 2)
-                elif tempDict["action"][0] == "killie":
-                    ret = os.system("taskkill /F /IM iexplore.exe")
-                    print (ret)
-                elif tempDict["action"][0] == "killccb":
-                    ret = os.system("taskkill /F /IM USBKeyTools.exe")
-                    print(ret)
             self.wfile.write(json.dumps(data_true).encode())
         except Exception as e:
             self.wfile.write(json.dumps(data_false).encode())
 
+
 if __name__ == '__main__':
-    # t = threading.Thread(target=worker,daemon=True)
-    # t.start()
     server = HTTPServer(host, Resquest)
     print("Starting server, listen at: %s:%s" % host)
     server.serve_forever()

@@ -7,15 +7,29 @@ import time
 from selenium.webdriver.common.keys import Keys
 import ait
 from selenium.common.exceptions import TimeoutException
-
+import threading
 import uiautomation as auto
+from DD.DDLib import DDLib
+
+
+def worker(pwd):
+    time.sleep(6)
+    dd = DDLib()
+    print("press enter")
+    dd.dd_dll.DD_key(815, 1)
+    dd.dd_dll.DD_key(815, 2)
+    time.sleep(3)
+    dd.send_keys(pwd)
+    time.sleep(1)
+    dd.dd_dll.DD_key(815, 1)
+    dd.dd_dll.DD_key(815, 2)
 
 
 class psbc(Bank):
     def __init__(self, LoginPasswd, ConfirmPasswd, BeginDate, EndDate, BatchId, SlotNum, LoginAccount):
         self.BankName = "PSBC"
         self.BinPath = ""
-        self.LoginUrl = "https://www.psbc.com/cn/"
+        self.LoginUrl = "https://corpebank.psbc.com/#/login"
         self.LoginPasswd = LoginPasswd
         self.ConfirmPasswd = ConfirmPasswd
         # 可能有多个银行账号
@@ -31,39 +45,24 @@ class psbc(Bank):
         super().__init__()
 
     def login(self):
-        self.logger.info("开始登录 " + self.BankName + " " + self.LoginUrl)
-        self.logger.info("打开登录页")
 
+        self.logger.info("开始登录 " + self.BankName + " " + self.LoginUrl)
+        self.logger.info("启动异步线程确认证书,输入密码,按回车")
+
+        t = threading.Thread(target=worker, args=(self.ConfirmPasswd,), daemon=True)
+        t.start()
+
+        self.logger.info("打开登录页")
         self.Webdriver.get(self.LoginUrl)
         self.Webdriver.maximize_window()
-
-        self.logger.info("设定页面超时时间1秒")
-        self.Webdriver.set_page_load_timeout(2)
-
-        try:
-            self.logger.info("点击企业网银按钮")
-            self.Webdriver.find_element(By.XPATH, '/html/body/div[2]/div[3]/a[2]').click()
-        except TimeoutException:
-            self.logger.info("点击企业网银按钮后弹出密码框超时")
-
-        closeButton = auto.ButtonControl(AutomationId="1", Depth=2, Name="确定", searchInterval=0.5)
-        if not closeButton.Exists(10, 0):
-            raise Exception("密码控件等待超时")
-
-        time.sleep(2)
-        self.logger.info("输入U盾密码并回车")
-        self.sendkeysRemote(self.ConfirmPasswd)
-        time.sleep(2)
-        self.pressEnterRemote()
-        self.logger.info("等待页面加载完成")
-        time.sleep(2)
-        self.Webdriver.set_page_load_timeout(10)
-        self.logger.info("再次点击企业网银按钮")
-        self.Webdriver.find_element(By.XPATH, '/html/body/div[2]/div[3]/a[2]').click()
-        WebDriverWait(self.Webdriver, 10, 0.2).until(
-            EC.url_to_be("https://corpebank.psbc.com/#/login"))
+        # closeButton = auto.ButtonControl(AutomationId="1", Depth=2, Name="确定", searchInterval=0.5)
+        # if not closeButton.Exists(10, 0):
+        #     raise Exception("密码控件等待超时")
+        self.logger.info("点击登录框")
         self.Webdriver.find_element(By.ID, 'ukeyLogin').click()
+        self.logger.info("输入登录密码")
         self.sendkeysRemote(self.LoginPasswd)
+        self.logger.info("点击登录按钮")
         self.Webdriver.find_element(By.XPATH, '//*[@id="pane-ukeyLogin"]/form/button').click()
         self.logger.info("结束登录")
         return True
@@ -74,7 +73,7 @@ class psbc(Bank):
         WebDriverWait(self.Webdriver, 10, 0.2).until(
             EC.url_to_be("https://corpebank.psbc.com/#/index"))
         self.logger.info("点击交易明细")
-        # time.sleep(2)
+        time.sleep(2)
         self.Webdriver.find_element(By.XPATH,
                                     '//*[@id="app"]/div/div[2]/div[2]/div/div/div[2]/div/div[1]/div[1]/form/button[1]').click()
         time.sleep(3)

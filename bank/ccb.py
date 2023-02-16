@@ -1,5 +1,4 @@
 import uiautomation
-
 from bank.bank import Bank
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -7,8 +6,8 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 from selenium.webdriver.common.keys import Keys
 import ait
-
 import uiautomation as auto
+
 
 class ccb(Bank):
   def __init__(self,  LoginPasswd, ConfirmPasswd ,BeginDate, EndDate, BatchId, SlotNum, LoginAccount):
@@ -40,6 +39,8 @@ class ccb(Bank):
     # time.sleep(3)
     # self.Webdriver.find_element(By.ID, 'jumpBtn').click()
     uiautomation.ButtonControl(AutomationId="jumpBtn").Click()
+    time.sleep(1)
+    self.pressEnterRemote()
     time.sleep(3)
     self.logger.info("输入U盾密码并回车")
     self.sendkeysRemote(self.ConfirmPasswd)
@@ -100,7 +101,9 @@ class ccb(Bank):
     self.logger.info("点击交易明细按钮")
     self.Webdriver.execute_script("detailQuery()")
     self.logger.info("返回上级frame")
+    time.sleep(1)
     self.Webdriver.switch_to.parent_frame()
+    time.sleep(2)
     # self.waitElementLoad(self.Webdriver, By.ID, "StDt", 5)
     #修改起止日期
     js = 'document.querySelector("#StDt").value = "'+self.BeginDate.replace("-","")+'"\n' \
