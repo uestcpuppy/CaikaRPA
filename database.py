@@ -472,9 +472,15 @@ def importBankXls(account_id, filePath):
 
         #如果income,expense,balance是字符串, 转换为浮点数
         if isinstance(rowData[accountInfo["income"]-1], str):
-            rowData[accountInfo["income"]-1] = float(rowData[accountInfo["income"] - 1].replace(",", "").replace("-","0"))
+            if rowData[accountInfo["income"]-1].strip() == "":
+                rowData[accountInfo["income"] - 1] = 0
+            else:
+                rowData[accountInfo["income"]-1] = float(rowData[accountInfo["income"] - 1].strip().replace(",", "").replace("-","0"))
         if isinstance(rowData[accountInfo["expense"]-1], str):
-            rowData[accountInfo["expense"]-1] = float(rowData[accountInfo["expense"] - 1].replace(",", "").replace("-","0"))
+            if rowData[accountInfo["expense"]-1].strip() == "":
+                rowData[accountInfo["expense"] - 1] = 0
+            else:
+                rowData[accountInfo["expense"]-1] = float(rowData[accountInfo["expense"] - 1].strip().replace(",", "").replace("-","0"))
         if isinstance(rowData[accountInfo["balance"]-1], str):
             rowData[accountInfo["balance"] - 1] = float(rowData[accountInfo["balance"] - 1].replace(",", ""))
 
