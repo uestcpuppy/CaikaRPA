@@ -11,7 +11,7 @@ def getDb():
         "host":"localhost",
         "user":"root",
         "password":"caika2020",
-        "database":"caika_xiaolidu",
+        "database":"caika_goski",
         "cursorclass": pymysql.cursors.DictCursor
     }
     db = pymysql.connect(**config)
