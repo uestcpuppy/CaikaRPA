@@ -142,7 +142,7 @@ class Bank:
         self.Webdriver.maximize_window()
         self.Webdriver.implicitly_wait(config.IMPLICITLY_WAIT)
         self.Webdriver.set_script_timeout(config.SCRIPT_TIMEOUT)
-        self.Webdriver.set_page_load_timeout(config.PAGELOAD_TIMEOUT)
+        # self.Webdriver.set_page_load_timeout(config.PAGELOAD_TIMEOUT)
 
     def highlight(self,element):
         self.Webdriver.execute_script("arguments[0].setAttribute('style', "
