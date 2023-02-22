@@ -59,6 +59,7 @@ class psbc(Bank):
         # if not closeButton.Exists(10, 0):
         #     raise Exception("密码控件等待超时")
         self.logger.info("点击登录框")
+        WebDriverWait(self.Webdriver, 10, 0.2).until(EC.element_to_be_clickable((By.ID, 'ukeyLogin')))
         self.Webdriver.find_element(By.ID, 'ukeyLogin').click()
         self.logger.info("输入登录密码")
         self.sendkeysRemote(self.LoginPasswd)
@@ -104,6 +105,14 @@ class psbc(Bank):
 
     def download(self):
         self.logger.info("开始下载")
+        try:
+            WebDriverWait(self.Webdriver, 5, 0.2).until(EC.element_to_be_clickable((By.XPATH,
+                                                                                    '//*[@id="app"]/div/div[2]/div[2]/div[2]/div[2]/div[2]/div/div/div/div[2]/div/div[6]/div[1]/div[2]/div[2]/span')))
+        except Exception as e:
+            self.logger.info("没有下载按钮, 查询数据为空")
+            self.saveScreenShot()
+            return True
+
         self.logger.info("点击下载")
         self.Webdriver.find_element(By.XPATH,
                                     '//*[@id="app"]/div/div[2]/div[2]/div[2]/div[2]/div[2]/div/div/div/div[2]/div/div[6]/div[1]/div[2]/div[2]/span').click()

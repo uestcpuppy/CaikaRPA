@@ -71,6 +71,7 @@ class bjrcb(Bank):
         time.sleep(1)
         self.Webdriver.find_element(By.ID, 'doItButton').click()
         self.logger.info("完成查询")
+
         return True
 
     def download(self):

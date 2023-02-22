@@ -39,7 +39,10 @@ def killWindow(hwnd, extra):
                 print("温馨提示建行tips found")
                 win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
             if process_name=="USBKeyTools.exe" and windowTitle=="":
-                print("无名建行tips found")
+                print("usbkeytools无名建行tips found")
+                win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
+            if process_name=="CCBCertificate.exe" and windowTitle=="":
+                print("无名建行ccbcertificate tips found")
                 win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
             if windowTitle=="中国邮政储蓄银行" and process_name=="UKTools.exe":
                 print("邮储tips found")
@@ -74,7 +77,7 @@ if __name__ == '__main__':
         usb = usbhub()
         # 打开指定的端口
         usb.switchSlot(int(slotNum), 1)
-        time.sleep(5)
+        time.sleep(2)
         bank = slotInfo["bank"].lower()
         mod = importlib.import_module("bank."+bank)
         bankClass = getattr(mod, bank)
@@ -84,6 +87,3 @@ if __name__ == '__main__':
     except Exception as e:
         database.updateExecution(executionId, status="FAILED",runEndDatetime=utils.getNowTime())
         bankObj.logger.exception(f"exception: {str(e)}")
-
-
-

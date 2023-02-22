@@ -1,7 +1,7 @@
 PROJECT_ROOT = "C:\\Users\\44365\PycharmProjects\\bankRPA\\"
 # PROJECT_ROOT = "D:\\caika\\rpa\\"
-DATA_ROOT = "D:\\data\\"
-# DATA_ROOT = "D:\\caika\\data\\"
+# DATA_ROOT = "D:\\data\\"
+DATA_ROOT = "D:\\caika\\data\\"
 
 DOWNLOAD_TEMP_DIR = DATA_ROOT + "temp\\"
 DOWNLOAD_DIR = DATA_ROOT + "download\\"
@@ -11,3 +11,4 @@ PORT_NUMBER_DD = 8888
 
 IMPLICITLY_WAIT = 5
 SCRIPT_TIMEOUT = 5
+PAGELOAD_TIMEOUT = 10

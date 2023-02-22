@@ -11,7 +11,7 @@ def getDb():
         "host":"localhost",
         "user":"root",
         "password":"caika2020",
-        "database":"caika_goski",
+        "database":"caika",
         "cursorclass": pymysql.cursors.DictCursor
     }
     db = pymysql.connect(**config)
@@ -432,7 +432,7 @@ def exportDetailXls(detailList):
             bankShortName = i["short_name"]
             companyName = i["company_name"]
             lastAccountNum = accountNum
-        sheet1.append([companyName,"",accountNum,bankShortName,"","", str(i["transaction_time"])[0:10],"",i["summary"],"","", income,expense])
+        sheet1.append([companyName,"",accountNum,bankShortName,"","", str(i["transaction_time"])[0:10],"",i["summary"],i["customer_account_name"],i["customer_account_num"], income,expense])
     filePath = config.DOWNLOAD_TEMP_DIR + "data.xlsx"
     if os.path.exists(filePath):
         os.remove(filePath)

@@ -55,6 +55,7 @@
     <script>
 
     var isStopAll = false;
+    var retryTimes = 0;
 
         function importExecution(executionId)
         {
@@ -89,7 +90,6 @@
             var currentTimer = 0
             var toRunSlotArray = new Array()
             var taskStatusMap = new Map([[null, "【未知】"],["READY","【准备执行】"],["RUNNING","【执行中】"],["FINISHED","【执行成功】"],["FAILED","【执行失败】"]])
-
 
             function getXlsDownloadStr(data)
             {
@@ -248,9 +248,9 @@
             }
 
             $("#run").click(function(){
-              $.ajaxSettings.async = false;
               isStopAll = false;
               var isUsbHubWorking = false
+              $.ajaxSettings.async = false
               $.getJSON("/getUsbHubStatus",function(data){
                    isUsbHubWorking = data["result"]
               });
@@ -307,6 +307,7 @@
                //第一次执行
                if(currentSlotNum ==0)
                {
+                  retryTimes = 0;
                   execNewTask();
                   return;
                }
@@ -330,9 +331,18 @@
                    $("#bill_download_"+currentSlotNum).html(getXlsDownloadStr(data))
                    $("#photo_download_"+currentSlotNum).html(getImgDownloadStr(data))
 
+                   //如果运行失败且之前未重试过, 重试一次
+                   if (data["status"]=="FAILED" && retryTimes==0)
+                   {
+                      retryTimes = 1;
+                      execNewTask();
+                      return;
+                   }
+
                    if (data["status"]=="FINISHED"||data["status"]=="FAILED")
                    {
                       toRunSlotArray.shift()
+                      retryTimes = 0
                       if(toRunSlotArray.length ==0)
                       {
                          info("待执行任务为空,定时器已关闭")
