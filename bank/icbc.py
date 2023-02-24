@@ -31,10 +31,12 @@ class icbc(Bank):
     #切换frame
     WebDriverWait(self.Webdriver, 10, 0.2).until(
         EC.frame_to_be_available_and_switch_to_it((By.NAME, "indexFrame")))
-    time.sleep(3)
+    # time.sleep(3)
     self.logger.info("点击U盾登录按钮")
     self.Webdriver.find_element(By.ID, 'usubmitkey').click()
-    time.sleep(3)
+    time.sleep(2)
+    self.pressEnterRemote()
+    time.sleep(2)
     # if self.Webdriver.current_url == "https://corporbank-simp.icbc.com.cn/ebankc/normalbank/guide.jsp":
     #     self.logger.info("没有检测到U盾")
     #     raise Exception("no usbkey detected")

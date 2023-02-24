@@ -3,11 +3,12 @@ import time
 import subprocess
 import uiautomation as auto
 import ait
+import os
 
 class cmb(Bank):
-  def __init__(self,  LoginPasswd, ConfirmPasswd, BeginDate, EndDate, BatchId, SlotNum):
+  def __init__(self,  LoginPasswd, ConfirmPasswd ,BeginDate, EndDate, BatchId, SlotNum, LoginAccount):
     self.BankName = "CMB"
-    self.BinPath = "D:\\FirmBank\\Bin\\Firmbank.exe"
+    self.BinPath = "D:\\Bin\\Firmbank.exe"
     self.LoginUrl = ""
     self.LoginPasswd = LoginPasswd
     self.ConfirmPasswd = ConfirmPasswd
@@ -66,8 +67,7 @@ class cmb(Bank):
 
   def query(self):
     self.logger.info("开始查询")
-    # transBtn = auto.ButtonControl(AutomationId='btnTransaction', Name="交易明细")
-    transBtn = auto.ButtonControl(AutomationId='btnTransaction', Depth=14)
+    transBtn = auto.HyperlinkControl(AutomationId="btnTransaction", Name="交易明细",Depth=15)
     if transBtn.Exists(15,0.5):
         # mainWindow.SetTopmost(True)
         transBtn.Click()
@@ -93,41 +93,43 @@ class cmb(Bank):
       self.logger.info("开始下载")
       self.logger.info("点击导出全部")
       auto.ButtonControl(AutomationId='btnExportSingleAll').Click()
-      saveWindow = auto.WindowControl(searchDepth=2, Name='文件下载')
+      # saveWindow = auto.WindowControl(searchDepth=2, Name='文件下载')
+      saveWindow = auto.WindowControl(ClassName="#32770", SubName="另存为", Depth=2)
       # 如果弹出保存对话框说明有数据
       if not saveWindow.Exists(5, 0.5):
-          self.logger.info("查询无数据")
-          auto.GetRootControl().CaptureToImage(self.getDownloadFilePath(self.BankName+"_"+self.BatchId+".png"))
+          self.logger.info("无可下载的数据")
+          self.saveScreenShot()
           return True
-      auto.ButtonControl(AutomationId='4427').Click()
-      time.sleep(3)
+      # auto.ButtonControl(AutomationId='4427').Click()
+      # time.sleep(3)
       self.logger.info("修改保存路径")
       dirEC = auto.EditControl(AutomationId='1001')
-      filePath = self.getDownloadFilePath(self.BankName+"_"+self.BatchId + ".xlsx")
+      filePath = self.DownloadTempPath+self.BankName+"_"+self.BatchId + ".xlsx"
       dirEC.SendKeys(filePath)
       self.logger.info("点击保存")
       auto.ButtonControl(AutomationId='1').Click()
-      time.sleep(3)
-      if self.isFileExist(filePath):
-          self.logger.info("文件保存成功:"+filePath)
+      time.sleep(5)
+      self.logger.info("从临时文件夹move到正式文件夹")
+      downloadFile = self.processDownloadFile()
+      if downloadFile == "":
+          self.logger.info("下载失败")
+          self.saveScreenShot()
       else:
-          self.logger.info("文件保存失败:" + filePath)
-          raise Exception("文件保存失败:"+filePath)
+          self.logger.info("下载成功:"+downloadFile)
       self.logger.info("结束下载")
       return True
 
   def quit(self):
-      auto.WindowControl(searchDepth=1, SubName="招商银行企业银行").GetWindowPattern().Close()
-      auto.ButtonControl(AutomationId='2020').Click()
-      time.sleep(1)
-      ait.click()
+      # auto.WindowControl(searchDepth=1, SubName="招商银行企业银行").GetWindowPattern().Close()
+      # auto.ButtonControl(AutomationId='2020').Click()
+      # time.sleep(1)
+      # ait.click()
       self.logger.info("退出客户端")
-      # os.system("taskkill /F /IM Firmbank.exe")
+      os.system("taskkill /F /IM Firmbank.exe")
       return True
 
   def run(self):
       self.login()
       self.query()
       self.download()
-      time.sleep(3)
       self.quit()
