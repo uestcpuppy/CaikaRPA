@@ -10,6 +10,7 @@ import win32gui
 from win32.lib import win32con
 import win32process
 import psutil
+import math
 
 def killWindow(hwnd, extra):
     isBrowserWindow = False
@@ -47,6 +48,9 @@ def killWindow(hwnd, extra):
             if windowTitle=="中国邮政储蓄银行" and process_name=="UKTools.exe":
                 print("邮储tips found")
                 win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
+            if windowTitle=="用户提示":
+                print(process_name)
+                win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
 
 def worker():
     while True:
@@ -75,8 +79,11 @@ if __name__ == '__main__':
         t.start()
         # 调用usb hub
         usb = usbhub()
+
         # 打开指定的端口
-        usb.switchSlot(int(slotNum), 1)
+        realSlotNum =  slotNum[1:3]
+        usb.switchSlot(int(realSlotNum), 1)
+
         time.sleep(2)
         bank = slotInfo["bank"].lower()
         mod = importlib.import_module("bank."+bank)

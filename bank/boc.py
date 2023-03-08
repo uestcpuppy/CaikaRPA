@@ -51,6 +51,7 @@ class boc(Bank):
         t = threading.Thread(target=worker, args=(self.ConfirmPasswd,), daemon=True)
         t.start()
         self.logger.info("开始登录 " + self.BankName + " " + self.LoginUrl)
+        self.Webdriver.set_page_load_timeout(20)
         self.Webdriver.get(self.LoginUrl)
         # self.Webdriver.maximize_window()
         # time.sleep(5)
@@ -99,9 +100,12 @@ class boc(Bank):
         self.logger.info("文件类型选择excel")
         self.Webdriver.execute_script(
             'document.querySelectorAll("ul.bfe-scrollbar__view.bfe-select-dropdown__list span")[22].click()')
-        self.logger.info("选择所有账户Checkbox")
-        self.Webdriver.find_element(By.XPATH,
-                                    '//*[@id="app"]/DIV/DIV[3]/SECTION/DIV[1]/DIV[3]/DIV/DIV/DIV[2]/DIV[1]/DIV/DIV[2]/DIV[2]/DIV[2]/TABLE/THEAD/TR/TH[1]/DIV/DIV/SPAN/LABEL/SPAN/SPAN').click()
+        # self.logger.info("选择所有账户Checkbox")
+        # self.Webdriver.find_element(By.XPATH, '//*[@id="app"]/DIV/DIV[3]/SECTION/DIV[1]/DIV[3]/DIV/DIV/DIV[2]/DIV[1]/DIV/DIV[2]/DIV[2]/DIV[2]/TABLE/THEAD/TR/TH[1]/DIV/DIV/SPAN/LABEL/SPAN/SPAN').click()
+        self.logger.info("选择账户")
+        self.Webdriver.execute_script(
+            'document.querySelectorAll("input[type=checkbox]")[' + str(self.Index + 4) + '].click()')
+
         self.logger.info("点击生成下载文件按钮")
         self.Webdriver.find_element(By.XPATH,
                                     '//*[@id="app"]/DIV/DIV[3]/SECTION/DIV[1]/DIV[3]/DIV/DIV/DIV[2]/DIV[1]/DIV/DIV[3]/DIV/DIV/DIV/DIV/BUTTON').click()
@@ -109,7 +113,7 @@ class boc(Bank):
         return True
 
     def download(self):
-        time.sleep(5)
+        time.sleep(10)
         self.logger.info("开始下载")
         self.logger.info("点击工作台菜单")
         self.Webdriver.find_element(By.XPATH, '//*[@id="slider-group"]/DIV[2]/P').click()

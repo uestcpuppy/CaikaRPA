@@ -74,9 +74,14 @@ class cib(Bank):
   def query(self):
     self.logger.info("开始查询")
     self.logger.info("关闭广告")
-    WebDriverWait(self.Webdriver, 10, 0.2).until(
-        EC.visibility_of_element_located((By.ID, "adaptiveAlert-bulletin")))
-    self.Webdriver.execute_script('removeAdaptiveDialog("bulletin")')
+
+    try:
+        WebDriverWait(self.Webdriver, 3, 0.2).until(
+            EC.visibility_of_element_located((By.ID, "adaptiveAlert-bulletin")))
+        self.Webdriver.execute_script('removeAdaptiveDialog("bulletin")')
+    except Exception as e:
+        self.logger.info("未出现广告页")
+
     self.logger.info("点击交易明细查询菜单")
     self.Webdriver.execute_script('document.getElementById("130100").click()')
     time.sleep(3)
@@ -96,6 +101,7 @@ class cib(Bank):
     self.logger.info("结束查询")
     return True
   def download(self):
+      time.sleep(3)
       self.logger.info("开始下载")
       self.logger.info("点击下载按钮")
       self.Webdriver.execute_script('document.getElementById("download").click()')

@@ -24,24 +24,30 @@ class icbc(Bank):
     super().__init__()
 
   def login(self):
+
     time.sleep(3)
     self.logger.info("开始登录 "+self.BankName+" "+ self.LoginUrl)
     self.Webdriver.get(self.LoginUrl)
-    self.Webdriver.maximize_window()
+
+    # time.sleep(10)
+
+    # self.sendkeysRemote(self.ConfirmPasswd)
+    # time.sleep(200)
+
     #切换frame
     WebDriverWait(self.Webdriver, 10, 0.2).until(
         EC.frame_to_be_available_and_switch_to_it((By.NAME, "indexFrame")))
-    # time.sleep(3)
+    time.sleep(2)
     self.logger.info("点击U盾登录按钮")
     self.Webdriver.find_element(By.ID, 'usubmitkey').click()
     time.sleep(2)
     self.pressEnterRemote()
-    time.sleep(2)
+    time.sleep(4)
     # if self.Webdriver.current_url == "https://corporbank-simp.icbc.com.cn/ebankc/normalbank/guide.jsp":
     #     self.logger.info("没有检测到U盾")
     #     raise Exception("no usbkey detected")
     self.logger.info("输入密码并按回车")
-    self.sendkeysRemote(self.LoginPasswd)
+    self.sendkeysRemote(self.ConfirmPasswd)
     time.sleep(2)
     self.pressEnterRemote()
     time.sleep(1)
@@ -56,7 +62,10 @@ class icbc(Bank):
         EC.element_to_be_clickable((By.XPATH, '//*[@id="acctRightBlock"]/div/div[3]/a[1]')))
     self.logger.info("点击首页的明细查询")
     self.Webdriver.find_element(By.XPATH, '//*[@id="acctRightBlock"]/div/div[3]/a[1]').click()
-    time.sleep(5)
+    # time.sleep(5)
+    #下载按钮
+    WebDriverWait(self.Webdriver, 10, 0.2).until(
+        EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div[1]/div/form[13]/div[11]/button[4]')))
     self.logger.info("修改起止日期")
 
     js = 'datepicker1.setInitBeginDate("'+self.BeginDate.replace("-","")+'")\n' \

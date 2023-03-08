@@ -68,8 +68,6 @@ class hxb(Bank):
     self.Webdriver.find_element(By.ID, "login_submit").click()
     WebDriverWait(self.Webdriver, 15, 0.2).until(EC.url_contains("https://dbank.hxb.com.cn/gluebanking/welcomemanage/welcomeset/welcomePage_show.html"))
     self.logger.info("结束登录")
-
-    raise Exception("密码控件等待超时")
     return True
 
 
