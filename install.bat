@@ -1,8 +1,8 @@
 @echo off
 %1 start "" mshta vbscript:CreateObject("Shell.Application").ShellExecute("cmd.exe","/c pushd ""%~dp0"" && ""%~s0"" ::","","runas",1)(window.close)&&exit
-echo 【一】修改注册表
-regedit /s chrome.reg
-echo.
+::echo 【一】修改注册表
+::regedit /s chrome.reg
+::echo.
 echo 【二】设置python环境变量
 setx PATH "D:\caika\python37;D:\caika\python37\Scripts;%PATH%;" /m
 echo.

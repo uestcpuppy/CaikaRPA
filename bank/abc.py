@@ -77,32 +77,11 @@ class abc(Bank):
   def download(self):
       self.logger.info("点击下载明细按钮")
       self.Webdriver.execute_script('javascript:submitform6("3950")')
-      # time.sleep(3)
-      self.logger.info("点击菜单扩展按钮")
-      saveAs = uiautomation.SplitButtonControl(Name="6", Depth=5)
-      if not saveAs.Exists(6, 0.2):
-          self.logger.info("无可下载的数据")
-          self.saveScreenShot()
-          return True
-      saveAs.Click()
-      self.logger.info("点击另存为按钮")
-      saveAsButton = uiautomation.MenuItemControl(AutomationId="53409", searchInterval=0.5)
-      saveAsButton.Click()
-      self.logger.info("修改保存路径")
-      dirEC = uiautomation.EditControl(AutomationId='1001')
-      filePath = self.DownloadTempPath+self.BankName+"_"+self.BatchId + ".xlsx"
-      dirEC.SendKeys(filePath)
-      self.logger.info("点击保存")
-      uiautomation.ButtonControl(AutomationId='1').Click()
-      time.sleep(5)
-      self.logger.info("从临时文件夹move到正式文件夹")
-      downloadFile = self.processDownloadFile()
-      if downloadFile == "":
+      if self.downloadFileFromIE():
+          self.logger.info("下载成功")
+      else:
           self.logger.info("下载失败")
           self.saveScreenShot()
-      else:
-          self.logger.info("下载成功:"+downloadFile)
-      self.logger.info("结束下载")
       return True
   def quit(self):
       self.Webdriver.quit()

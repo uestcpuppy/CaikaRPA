@@ -103,7 +103,7 @@
                 AccountId = $("#account option:selected").val()
                 BeginDate = $("#beginDate").val()
                 EndDate = $("#endDate").val()
-                str = "<tr><th>交易日期</th><th>我方账号</th><th>收入金额</th><th>支出金额</th><th>对方开户银行</th><th>对方账户</th><th>对方账号</th><th>摘要</th></tr>"
+                str = "<tr><th>交易日期</th><th>我方账号</th><th>收入金额</th><th>支出金额</th><th>余额</th><th>对方开户银行</th><th>对方账户</th><th>对方账号</th><th>摘要</th></tr>"
                 $("#tb").empty()
                 $("#tb").append(str)
                 //查询当页数据
@@ -123,6 +123,7 @@
                         <td>"+$("#account option:selected").text()+"</td>\
                         <td>"+value["income"].toFixed(2)+"</td>\
                         <td>"+value["expense"].toFixed(2)+"</td>\
+                        <td>"+value["balance"].toFixed(2)+"</td>\
                         <td><div class=\"tooltip\">"+new_customer_bank_name+"<span class=\"tooltiptext\">"+value["customer_bank_name"]+"</span></div></td>\
                         <td><div class=\"tooltip\">"+new_customer_account_name+"<span class=\"tooltiptext\">"+value["customer_account_name"]+"</span></div></td>\
                         <td>"+value["customer_account_num"]+"</td>\

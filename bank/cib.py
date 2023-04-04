@@ -7,15 +7,20 @@ from selenium.webdriver.common.keys import Keys
 import threading
 import uiautomation as auto
 from DD.DDLib import DDLib
+import config
 import os
 
-def worker(pwd):
+def worker(pwd, obj):
+    # time.sleep(5)
+    # dd = DDLib()
+    # dd.send_keys(pwd)
+    # time.sleep(1)
+    # dd.dd_dll.DD_key(815, 1)
+    # dd.dd_dll.DD_key(815, 2)
     time.sleep(5)
-    dd = DDLib()
-    dd.send_keys(pwd)
+    obj.sendkeysRemote(pwd)
     time.sleep(1)
-    dd.dd_dll.DD_key(815, 1)
-    dd.dd_dll.DD_key(815, 2)
+    obj.pressEnterRemote()
 
 
 class cib(Bank):
@@ -39,7 +44,7 @@ class cib(Bank):
 
   def login(self):
     self.logger.info("启动异步线程确认证书,输入密码,按回车")
-    t = threading.Thread(target=worker, args=(self.ConfirmPasswd,), daemon=True)
+    t = threading.Thread(target=worker, args=(self.ConfirmPasswd,self), daemon=True)
     t.start()
     self.logger.info("开始登录 "+self.BankName+" "+ self.LoginUrl)
     self.Webdriver.get(self.LoginUrl)
@@ -76,11 +81,14 @@ class cib(Bank):
     self.logger.info("关闭广告")
 
     try:
+        self.Webdriver.implicitly_wait(2)
         WebDriverWait(self.Webdriver, 3, 0.2).until(
             EC.visibility_of_element_located((By.ID, "adaptiveAlert-bulletin")))
         self.Webdriver.execute_script('removeAdaptiveDialog("bulletin")')
     except Exception as e:
         self.logger.info("未出现广告页")
+    finally:
+        self.Webdriver.implicitly_wait(config.IMPLICITLY_WAIT)
 
     self.logger.info("点击交易明细查询菜单")
     self.Webdriver.execute_script('document.getElementById("130100").click()')
@@ -116,44 +124,15 @@ class cib(Bank):
           self.logger.info("切换到dialogFrame失败, 查询数据为空, 结束下载")
           self.saveScreenShot()
           return True
-      time.sleep(2)
+      # time.sleep(300)
       self.logger.info("点击下载图标")
       self.Webdriver.execute_script('document.querySelector("div.box img").click()')
       time.sleep(2)
-      self.logger.info("点击菜单扩展按钮")
-      saveAs = auto.SplitButtonControl(Name="6", Depth=5)
-      if not saveAs.Exists(6, 0.2):
-          self.logger.info("无可下载的数据")
-          self.saveScreenShot()
-          return True
-      saveAs.Click()
-      self.logger.info("点击另存为按钮")
-      saveAsButton = auto.MenuItemControl(AutomationId="53409", searchInterval=0.5)
-      saveAsButton.Click()
-      self.logger.info("修改保存路径")
-      dirEC = auto.EditControl(AutomationId='1001')
-      filePath = self.DownloadTempPath+self.BankName+"_"+self.BatchId + ".xlsx"
-      dirEC.SendKeys(filePath)
-      self.logger.info("点击保存")
-      auto.ButtonControl(AutomationId='1').Click()
-      time.sleep(5)
-      self.logger.info("从临时文件夹move到正式文件夹")
-      downloadFile = self.processDownloadFile()
-      if downloadFile == "":
+      if self.downloadFileFromIE():
+          self.logger.info("下载成功")
+      else:
           self.logger.info("下载失败")
           self.saveScreenShot()
-      else:
-          self.logger.info("下载成功:"+downloadFile)
-      self.logger.info("结束下载")
-      # self.logger.info("发送Ctrl+S保存文件")
-      # self.pressAltS()
-      # time.sleep(3)
-      # downloadFile = self.processDownloadFile()
-      # if downloadFile == "":
-      #     self.logger.info("下载失败")
-      # else:
-      #     self.logger.info("下载成功:"+downloadFile)
-      # self.logger.info("结束下载")
       return True
   def quit(self):
       self.Webdriver.quit()

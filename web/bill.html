@@ -122,7 +122,8 @@
                 $("#tb").append("<tr><th>选择</th><th>端口</th><th>账户</th><th>银行</th><th>开始日期</th><th>结束日期</th><th>执行状态</th><th>银行流水</th><th>屏幕截图</th><th>执行记录</th></tr>")
 
                     $.each(data, function (n, value) {
-                        i = n+1
+                        // i = n+1
+                        i = value["slot_num"]
                         $("#tb").append("<tr>\
                         <td><input type='checkbox' id='cb_"+i+"' checked='true' executionId='"+value["execution_id"]+"' /></td>\
                         <td>"+value["slot_num"]+"</td><td>"+value["short_name"]+"</td>\
@@ -161,9 +162,9 @@
                $("input[type=checkbox]").each(function(i){
                    if ($(this).prop("checked"))
                    {
-                    n = i + 1
+                    slotNum = $(this).prop("id").slice(3)
                     executionId = $(this).attr("executionId")
-                    if($("#bill_download_"+n).text().length > 1)
+                    if($("#bill_download_"+slotNum).text().length > 1)
                     {
                       importExecutionIds.push(executionId)
                     }
@@ -213,22 +214,25 @@
               duration = -parseInt(duration)
               $("input[type=checkbox]").each(function(i){
                 if ($(this).prop("checked")){
-                  $("#begin_"+(i+1)).val(formatDate(duration))
-                  $("#end_"+(i+1)).val(formatDate(0))
+                  slotNum = $(this).prop("id").slice(3)
+                  $("#begin_"+slotNum).val(formatDate(duration))
+                  $("#end_"+slotNum).val(formatDate(0))
                    }
               });
             })
             $("#resetAll").click(function(){
                 $("input[type=checkbox]").each(function(i){
-                  $("#begin_"+(i+1)).val("")
-                  $("#end_"+(i+1)).val("")
+                  slotNum = $(this).prop("id").slice(3)
+                  $("#begin_"+slotNum).val("")
+                  $("#end_"+slotNum).val("")
                 });
             });
             $("#setDate").click(function(){
                 $("input[type=checkbox]").each(function(i){
                 if ($(this).prop("checked")){
-                  $("#begin_"+(i+1)).val($("#beginDate").val())
-                  $("#end_"+(i+1)).val($("#endDate").val())
+                  slotNum = $(this).prop("id").slice(3)
+                  $("#begin_"+slotNum).val($("#beginDate").val())
+                  $("#end_"+slotNum).val($("#endDate").val())
                    }
                 });
             });
@@ -238,7 +242,8 @@
               var hasDateEmpty = false;
               $("input[type=checkbox]").each(function(i){
                 if ($(this).prop("checked")){
-                     if($("#begin_"+(i+1)).val()=="" || $("#end_"+(i+1)).val()=="")
+                     slotNum = $(this).prop("id").slice(3)
+                     if($("#begin_"+slotNum).val()=="" || $("#end_"+slotNum).val()=="")
                      {
                        hasDateEmpty = true
                      }
@@ -248,9 +253,9 @@
             }
 
             $("#run").click(function(){
+              $.ajaxSettings.async = false;
               isStopAll = false;
               var isUsbHubWorking = false
-              $.ajaxSettings.async = false
               $.getJSON("/getUsbHubStatus",function(data){
                    isUsbHubWorking = data["result"]
               });
@@ -321,6 +326,7 @@
                     info("端口"+currentSlotNum+"终止执行失败")
                  })
                  toRunSlotArray = toRunSlotArray.slice(0, 1);
+                 retryTimes = 1;
               }
 
                $.getJSON("/getSlotInfo&slotNum="+currentSlotNum,function(data){
@@ -437,9 +443,6 @@
                 }
                 return false;
             }
-
-
-
         });
     </script>
 </html>

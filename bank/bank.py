@@ -8,7 +8,6 @@ import win32con
 import win32api
 import database
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-
 import utils
 from DD.DDLib import DDLib
 import shutil
@@ -16,6 +15,7 @@ import requests
 import uiautomation as auto
 import config
 import pyscreenshot
+import ukeyinfo
 
 class Bank:
     def __init__(self):
@@ -53,6 +53,8 @@ class Bank:
         self.initDownloadDir()
         self.xlsFileName = ""
         self.imgFileName = ""
+        self.Index = int(self.SlotNum[-1])
+        self.initUKey()
 
     def initDownloadDir(self):
         targetDir = config.DOWNLOAD_DIR + self.BatchId + "\\"
@@ -118,8 +120,8 @@ class Bank:
             desired_capabilities["pageLoadStrategy"] = "normal"
             #浦发需要这种模式
             self.Webdriver = webdriver.Chrome(chrome_options=options, desired_capabilities=desired_capabilities)
-        # elif self.Browser == "Ie":
-        #     self.Webdriver = webdriver.Ie()
+        elif self.Browser == "Ie":
+            self.Webdriver = webdriver.Ie()
         elif self.Browser == "Edge":
             options = webdriver.EdgeOptions()
             prefs = {
@@ -135,7 +137,7 @@ class Bank:
             ie_options.edge_executable_path = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
             ie_options.page_load_strategy = "normal"
             ie_options.ignore_protected_mode_settings = True
-            # driver = webdriver.Ie(executable_path=r"D:\\Python37\\Scripts\\IEDriverServer.exe", options=ie_options)
+            # driver = webdriver.Ie(executable_path=r"D:\\caika\\Python37\\Scripts\\IEDriverServer.exe", options=ie_options)
             driver = webdriver.Ie(options=ie_options)
             self.Webdriver = driver
 
@@ -225,19 +227,42 @@ class Bank:
         image.save(targetFile)
         database.updateExecution(self.BatchId, imgFilename=fileName)
 
-    #这个代码有些问题
-    def waitElementLoad(self, webdriver, byWhich, elementValue, seconds):
-        for i in range(seconds * 5):
-            try:
-                webdriver.find_element(byWhich, elementValue)
-            except Exception as e:
-                print("尚未找到",elementValue)
-                time.sleep(0.2)
-            else:
-                print("已经找到")
-                return True
-        raise Exception("WaitElement timeout")
+    def downloadFileFromIE(self):
+        #扩展菜单按钮
+        saveAs = auto.SplitButtonControl(Depth=5)
+        saveAs.Click()
+        #点击另存为按钮
+        saveAsButton = auto.MenuItemControl(AutomationId="53409", searchInterval=0.5)
+        saveAsButton.Click()
+        if config.WINDOWS_VERSION == "10":
+            return self.saveAsWindowsDialogFile()
+        elif config.WINDOWS_VERSION == "7":
+            return self.saveAsWindowsDialogFile()
 
+    def saveAsWindowsDialogFile(self):
+        #检测是否出现另存为对话框
+        saveWindow = auto.WindowControl(ClassName="#32770", SubName="存", searchDepth=3)
+        if not saveWindow.Exists(5, 0.5):
+            return False
+        dirEC = auto.EditControl(AutomationId='1001')
+        filePath = self.DownloadTempPath + self.BankName + "_" + self.BatchId + ".xlsx"
+        dirEC.SendKeys(filePath)
+        #点击保存
+        auto.ButtonControl(AutomationId='1').Click()
+        time.sleep(5)
+        #从临时文件夹move到正式文件夹
+        downloadFile = self.processDownloadFile()
+        if downloadFile == "":
+            return False
+        else:
+            return True
+    def initUKey(self):
+        self.logger.info("等待UKey加载完成")
+        if ukeyinfo.getUKeyLoad(self.BankName, ukeyinfo.ACCOUNT_CN_DICT[int(self.SlotNum)], 10, 1):
+            self.logger.info("UKey加载完成")
+        else:
+            self.logger.info("UKey加载超时")
+            raise Exception("ukey load timeout")
 
 if __name__ == '__main__':
     a = Bank()

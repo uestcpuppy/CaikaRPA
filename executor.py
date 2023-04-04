@@ -10,7 +10,31 @@ import win32gui
 from win32.lib import win32con
 import win32process
 import psutil
-import math
+from PIL import ImageGrab
+import cv2
+import numpy as np
+import config
+
+def video_record():   # 录入视频
+  global executionId
+  filename = config.DOWNLOAD_DIR + executionId +"\\" + executionId
+  screen = ImageGrab.grab() # 获取当前屏幕
+  width, high = screen.size # 获取当前屏幕的大小
+  fourcc = cv2.VideoWriter_fourcc('X', 'V', 'I', 'D') # MPEG-4编码,文件后缀可为.avi .asf .mov等
+  video = cv2.VideoWriter('%s.avi' % filename, fourcc, 15, (width, high)) # （文件名，编码器，帧率，视频宽高）
+  #print('3秒后开始录制----')  # 可选
+  #time.sleep(3)
+  print('开始录制!')
+  global start_time
+  start_time = time.time()
+  while True:
+    if flag:
+      print("录制结束！")
+      video.release() #释放
+      break
+    im = ImageGrab.grab()  # 图片为RGB模式
+    imm = cv2.cvtColor(np.array(im),cv2.COLOR_RGB2BGR) # 转为opencv的BGR模式
+    video.write(imm)  #写入
 
 def killWindow(hwnd, extra):
     isBrowserWindow = False
@@ -32,6 +56,7 @@ def killWindow(hwnd, extra):
                 print("not my child: "+windowTitle)
                 # print(current_process.children(recursive=True))
                 win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
+                utils.stopTask(pid)
         else:
             # print(windowTitle)
             # print(process_name)
@@ -77,6 +102,13 @@ if __name__ == '__main__':
         #启动守护进程
         t = threading.Thread(target=worker, daemon=True)
         t.start()
+
+        #启动录屏线程
+        # flag = False
+        # th = threading.Thread(target=video_record)
+        # th.start()
+        # time.sleep(10)
+
         # 调用usb hub
         usb = usbhub()
 
@@ -94,3 +126,5 @@ if __name__ == '__main__':
     except Exception as e:
         database.updateExecution(executionId, status="FAILED",runEndDatetime=utils.getNowTime())
         bankObj.logger.exception(f"exception: {str(e)}")
+    finally:
+        flag = True

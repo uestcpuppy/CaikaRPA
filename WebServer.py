@@ -81,7 +81,8 @@ class myHandler(BaseHTTPRequestHandler):
             transactionId = self.getQueryStrParam("transactionId")
             summary = self.getQueryStrParam("summary")
             timeFormat = self.getQueryStrParam("timeFormat")
-            result = database.updateTemplate(id, templateName, bankId, sheetName, skipFirstRows, skipLastRows, transactionTime, income, expense, balance,customerAccountName, customerAccountNum, customerBankName, transactionId, summary, timeFormat)
+            order = self.getQueryStrParam("order")
+            result = database.updateTemplate(id, templateName, bankId, sheetName, skipFirstRows, skipLastRows, transactionTime, income, expense, balance,customerAccountName, customerAccountNum, customerBankName, transactionId, summary, timeFormat,order)
             self.responseJsonData({"result":result})
 
         if self.path.find("createTemplate") !=-1:
@@ -100,6 +101,7 @@ class myHandler(BaseHTTPRequestHandler):
             transactionId = self.getQueryStrParam("transactionId")
             summary = self.getQueryStrParam("summary")
             timeFormat = self.getQueryStrParam("timeFormat")
+            order = self.getQueryStrParam("order")
             result = database.createTemplate(templateName,
                                              bankId,
                                              sheetName,
@@ -114,7 +116,8 @@ class myHandler(BaseHTTPRequestHandler):
                                              customerBankName,
                                              transactionId,
                                              summary,
-                                             timeFormat)
+                                             timeFormat,
+                                             order)
             self.responseJsonData({"result":result})
 
         if self.path.find("updateCompany") !=-1:

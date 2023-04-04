@@ -1,13 +1,11 @@
-import uiautomation
 from bank.bank import Bank
+import uiautomation
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 from selenium.webdriver.common.keys import Keys
-import ait
 import threading
-import uiautomation as auto
 from DD.DDLib import DDLib
 
 def worker(pwd):
@@ -17,7 +15,6 @@ def worker(pwd):
     time.sleep(1)
     dd.dd_dll.DD_key(815, 1)
     dd.dd_dll.DD_key(815, 2)
-
 
 class hxb(Bank):
   def __init__(self,  LoginPasswd, ConfirmPasswd ,BeginDate, EndDate, BatchId, SlotNum, LoginAccount):
@@ -33,7 +30,7 @@ class hxb(Bank):
     self.EndDate = EndDate
     self.SlotNum = 0
     self.Logger = ""
-    self.Browser = "IeInEdge"
+    self.Browser = "Ie"
     self.BatchId = BatchId
     self.SlotNum = SlotNum
     super().__init__()
@@ -96,40 +93,19 @@ class hxb(Bank):
           self.logger.info("无可下载的数据")
           self.saveScreenShot()
           return True
-
       self.logger.info("下载全部Excel")
       self.Webdriver.execute_script("downFile(0,1)")
-      self.logger.info("点击菜单扩展按钮")
-      saveAs = uiautomation.SplitButtonControl(Name="6", Depth=5)
-      # if not saveAs.Exists(6, 0.2):
-      #     self.logger.info("无可下载的数据")
-      #     self.saveScreenShot()
-      #     return True
-      saveAs.Click()
-      self.logger.info("点击另存为按钮")
-      saveAsButton = uiautomation.MenuItemControl(AutomationId="53409", searchInterval=0.5)
-      saveAsButton.Click()
-      self.logger.info("修改保存路径")
-      dirEC = uiautomation.EditControl(AutomationId='1001')
-      filePath = self.DownloadTempPath+self.BankName+"_"+self.BatchId + ".xlsx"
-      dirEC.SendKeys(filePath)
-      self.logger.info("点击保存")
-      uiautomation.ButtonControl(AutomationId='1').Click()
-      time.sleep(5)
-      self.logger.info("从临时文件夹move到正式文件夹")
-      downloadFile = self.processDownloadFile()
-      if downloadFile == "":
+      time.sleep(2)
+      if self.downloadFileFromIE():
+          self.logger.info("下载成功")
+      else:
           self.logger.info("下载失败")
           self.saveScreenShot()
-      else:
-          self.logger.info("下载成功:"+downloadFile)
-      self.logger.info("结束下载")
-      return True
+
   def quit(self):
       self.Webdriver.quit()
       return True
   def run(self):
-      # time.sleep(5)
       self.login()
       self.query()
       self.download()

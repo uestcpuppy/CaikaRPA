@@ -11,7 +11,7 @@ def getDb():
         "host":"localhost",
         "user":"root",
         "password":"caika2020",
-        "database":"caika_xiaolidu",
+        "database":"caika_goski",
         "cursorclass": pymysql.cursors.DictCursor
     }
     db = pymysql.connect(**config)
@@ -55,10 +55,12 @@ def getQueryResultOne(sql):
         return None
 
 def getSlotList():
-    sql = "SELECT s.*, e.status, e.query_begin_date,e.query_end_date,e.xls_filename,e.screenshot_filename,a.short_name,b.`name` FROM slot as s " \
+    sql = "SELECT s.*, e.status, c.name as company_name, e.query_begin_date,e.query_end_date,e.xls_filename,e.screenshot_filename,a.short_name,b.`name` FROM slot as s " \
           "LEFT JOIN execution as e ON s.execution_id = e.id " \
           "LEFT JOIN account as a ON s.account_id = a.id " \
+          "LEFT JOIN company as c ON a.company_id = c.id " \
           "LEFT JOIN bank as b ON a.bank_id = b.id order by slot_num asc"
+    print (sql)
     res = getQueryResultAll(sql)
     return res
 
@@ -131,14 +133,14 @@ def removeSlot(slotNum):
     sql = "delete from slot where slot_num = "+slotNum
     return query(sql)
 
-def createTemplate(templateName,bankId,sheetName, skipFirstRows, skipLastRows,transactionTime,income,expense,balance,customerAccountName,customerAccountNum,customerBankName,transactionId,summary,timeFormat):
+def createTemplate(templateName,bankId,sheetName, skipFirstRows, skipLastRows,transactionTime,income,expense,balance,customerAccountName,customerAccountNum,customerBankName,transactionId,summary,timeFormat,order):
     # 1. 创建数据库连接对象
     con = getDb()
     # 2. 通过连接对象获取游标
     with con.cursor() as cursor:
             try:
                 # 3. 通过游标执行SQL并获得执行结果
-                sql = "INSERT INTO `template` VALUES (NULL, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')"%(templateName,
+                sql = "INSERT INTO `template` VALUES (NULL, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')"%(templateName,
                                                                                                                                       bankId,
                                                                                                                                       sheetName,
                                                                                                                                       skipFirstRows,
@@ -152,7 +154,8 @@ def createTemplate(templateName,bankId,sheetName, skipFirstRows, skipLastRows,tr
                                                                                                                                       customerBankName,
                                                                                                                                       transactionId,
                                                                                                                                       summary,
-                                                                                                                                      timeFormat)
+                                                                                                                                      timeFormat,
+                                                                                                                                      order)
                 result = cursor.execute(sql)
                 # 4. 操作成功提交事务
                 con.commit()
@@ -164,7 +167,7 @@ def createTemplate(templateName,bankId,sheetName, skipFirstRows, skipLastRows,tr
     return True
 
 
-def updateTemplate(id,templateName,bankId,sheetName,skipFirstRows,skipLastRows,transactionTime,income,expense,balance,customerAccountName,customerAccountNum,customerBankName,transactionId,summary,timeFormat):
+def updateTemplate(id,templateName,bankId,sheetName,skipFirstRows,skipLastRows,transactionTime,income,expense,balance,customerAccountName,customerAccountNum,customerBankName,transactionId,summary,timeFormat,order):
     sql = "UPDATE template SET name = '"+templateName+"'"
     sql = sql + ",bank_id = '"+bankId+"'"
     sql = sql + ",sheet_name= '"+sheetName+"'"
@@ -180,6 +183,7 @@ def updateTemplate(id,templateName,bankId,sheetName,skipFirstRows,skipLastRows,t
     sql = sql + ",transaction_id = '" + transactionId + "'"
     sql = sql + ",summary = '" + summary + "'"
     sql = sql + ",time_format = '" + timeFormat + "'"
+    sql = sql + ",template.order = '" + order + "'"
     sql = sql + " WHERE id = "+id
     return query(sql)
 
@@ -315,7 +319,7 @@ def getDetailList(accountId, beginDate, endDate, pageNum=1, pageSize=10000, filt
     elif filter == "all":
         condition = ""
     offset = (pageNum-1)*pageSize
-    sql = "select * from detail where account_id = '"+ accountId+"' and transaction_time between '"+beginDate+" 00:00:00' and '"+endDate+" 23:59:59' "+condition+" order by transaction_time asc limit "+str(offset)+","+str(pageSize)
+    sql = "select * from detail where account_id = '"+ accountId+"' and transaction_time between '"+beginDate+" 00:00:00' and '"+endDate+" 23:59:59' "+condition+" order by DATE_FORMAT( `transaction_time`, '%Y-%m-%d'), id limit "+str(offset)+","+str(pageSize)
     res = getQueryResultAll(sql)
     return res
 
@@ -432,7 +436,9 @@ def exportDetailXls(detailList):
             bankShortName = i["short_name"]
             companyName = i["company_name"]
             lastAccountNum = accountNum
-        sheet1.append([companyName,"",accountNum,bankShortName,"","", str(i["transaction_time"])[0:10],"",i["summary"],i["customer_account_name"],i["customer_account_num"], income,expense])
+        #解决导入ERP日期报错的Bug
+        date = datetime.datetime.strptime(str(i["transaction_time"])[0:10], '%Y-%m-%d')
+        sheet1.append([companyName,"",accountNum,bankShortName,"","", date.date(),"",i["summary"],i["customer_account_name"],i["customer_account_num"], income,expense])
     filePath = config.DOWNLOAD_TEMP_DIR + "data.xlsx"
     if os.path.exists(filePath):
         os.remove(filePath)
@@ -450,6 +456,10 @@ def importBankXls(account_id, filePath):
         return False, "文件未找到"
     # 行索引
     newInexValues = df.index.values[0:len(df.index.values)-accountInfo["skip_lastrows"]]
+    #如果是xls中的数据是降序, 反转list,确保导入是先发生先导入
+    if accountInfo["order"] == 1:
+        newInexValues = reversed(newInexValues)
+
     #  行数 （不包含表头，且一下均如此）
     # print(len(newInexValues))
     detailList = []

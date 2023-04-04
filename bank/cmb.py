@@ -1,15 +1,19 @@
 from bank.bank import Bank
+# from bank import Bank
 import time
 import subprocess
 import uiautomation as auto
-import ait
 import os
-
+from selenium import webdriver
+import config
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 class cmb(Bank):
     def __init__(self, LoginPasswd, ConfirmPasswd, BeginDate, EndDate, BatchId, SlotNum, LoginAccount):
         self.BankName = "CMB"
-        self.BinPath = "D:\\Bin\\Firmbank.exe"
+        self.BinPath = "C:\\Program Files (x86)\\CMB\\FirmBank\\Bin\\Firmbank.exe"
         self.LoginUrl = ""
         self.LoginPasswd = LoginPasswd
         self.ConfirmPasswd = ConfirmPasswd
@@ -26,6 +30,17 @@ class cmb(Bank):
         super().__init__()
 
     def login(self):
+        #初始化webdriver
+        options = webdriver.ChromeOptions()
+        options.add_argument('--no-sandbox')
+        # options.add_argument('--disable-extensions')
+        # options.add_argument('--disable-gpu')
+        # options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--remote-debugging-port=9222')  # 指定调试端口
+        options.binary_location = self.BinPath  # 应用程序的路径
+        #符合招行客户端版本的chromedriver
+        self.Webdriver = webdriver.Chrome(executable_path='D:\\caika\\soft\\chromedriver.exe', options=options)
+        self.Webdriver.implicitly_wait(config.IMPLICITLY_WAIT)
         self.logger.info("开始登录 " + self.BankName + " " + self.BinPath)
         # 打开网银客户端
         subprocess.Popen(self.BinPath)
@@ -46,13 +61,11 @@ class cmb(Bank):
             leftTime = leftTime - 1
         if loginWindow.EditControl(foundIndex=1).GetValuePattern().Value == "":
             raise Exception("未检测到U盾")
-
         if self.Index != 0:
             loginWindow.ComboBoxControl().Click()
             for i in range(self.Index):
                 auto.SendKey(auto.Keys.VK_DOWN)
                 time.sleep(1)
-
         self.logger.info("输入登录密码")
         ed = loginWindow.EditControl(foundIndex=2)
         ed.Click()
@@ -70,68 +83,40 @@ class cmb(Bank):
             self.logger.info("打开主窗口成功")
         else:
             self.logger.info("打开主窗口失败")
+            raise Exception("打开主窗口失败")
         self.logger.info("结束登录")
         return True
 
     def query(self):
         self.logger.info("开始查询")
-        transBtn = auto.HyperlinkControl(AutomationId="btnTransaction", Name="交易明细", Depth=15)
-        if transBtn.Exists(15, 0.5):
-            # mainWindow.SetTopmost(True)
-            transBtn.Click()
-            self.logger.info("点击交易明细按钮")
-        else:
-            self.logger.info("未找到交易明细按钮")
+        self.Webdriver.switch_to.window(self.Webdriver.window_handles[1])
+        self.logger.info("点击交易明细")
+        self.Webdriver.find_element(By.ID, 'btnTransaction').click()
+        self.logger.info("等待查询页加载完成后切换至查询窗口")
+        WebDriverWait(self.Webdriver, 10, 0.2).until(EC.number_of_windows_to_be(7))
+        self.Webdriver.switch_to.window(self.Webdriver.window_handles[6])
         self.logger.info("设定起止日期:" + self.BeginDate + "/" + self.EndDate)
-        beginEC = auto.EditControl(AutomationId='txtBeginDate')
-        if not beginEC.Exists(15, 0.5):
-            self.logger.info("未找到txtBeginDate控件")
-            return False
-        auto.EditControl(AutomationId='txtBeginDate').GetValuePattern().SetValue(self.BeginDate)
-        auto.SendKeys('{Enter}')
-        auto.EditControl(AutomationId='txtEndDate').GetValuePattern().SetValue(self.EndDate)
-        auto.SendKeys('{Enter}')
+        WebDriverWait(self.Webdriver, 10, 0.2).until(EC.element_to_be_clickable((By.ID, "txtBeginDate")))
+        # 修改起止日期
+        js = 'document.querySelector("#txtBeginDate").value = "' + self.BeginDate + '"\n'\
+            'document.querySelector("#txtEndDate").value = "' + self.EndDate + '"'
+        self.Webdriver.execute_script(js)
         self.logger.info("点击查询按钮")
-        auto.ButtonControl(AutomationId='btnCommonQuerySingle').Click()
-        time.sleep(2)
+        self.Webdriver.find_element(By.ID, 'btnCommonQuerySingle').click()
         self.logger.info("结束查询")
         return True
 
     def download(self):
         self.logger.info("开始下载")
         self.logger.info("点击导出全部")
-        auto.ButtonControl(AutomationId='btnExportSingleAll').Click()
-        # saveWindow = auto.WindowControl(searchDepth=2, Name='文件下载')
-        saveWindow = auto.WindowControl(ClassName="#32770", SubName="另存为", Depth=2)
-        # 如果弹出保存对话框说明有数据
-        if not saveWindow.Exists(5, 0.5):
-            self.logger.info("无可下载的数据")
-            self.saveScreenShot()
-            return True
-        # auto.ButtonControl(AutomationId='4427').Click()
-        # time.sleep(3)
-        self.logger.info("修改保存路径")
-        dirEC = auto.EditControl(AutomationId='1001')
-        filePath = self.DownloadTempPath + self.BankName + "_" + self.BatchId + ".xlsx"
-        dirEC.SendKeys(filePath)
-        self.logger.info("点击保存")
-        auto.ButtonControl(AutomationId='1').Click()
-        time.sleep(5)
-        self.logger.info("从临时文件夹move到正式文件夹")
-        downloadFile = self.processDownloadFile()
-        if downloadFile == "":
-            self.logger.info("下载失败")
-            self.saveScreenShot()
+        self.Webdriver.find_element(By.ID, 'btnExportSingleAll').click()
+        if self.saveAsWindowsDialogFile():
+            self.logger.info("下载成功")
         else:
-            self.logger.info("下载成功:" + downloadFile)
-        self.logger.info("结束下载")
-        return True
+            self.logger.info("下载失败")
+            raise Exception("下载失败")
 
     def quit(self):
-        # auto.WindowControl(searchDepth=1, SubName="招商银行企业银行").GetWindowPattern().Close()
-        # auto.ButtonControl(AutomationId='2020').Click()
-        # time.sleep(1)
-        # ait.click()
         self.logger.info("退出客户端")
         os.system("taskkill /F /IM Firmbank.exe")
         return True
@@ -141,3 +126,8 @@ class cmb(Bank):
         self.query()
         self.download()
         self.quit()
+
+# if __name__ == '__main__':
+#
+#     test = cmb("19950512", "19950512", "2023-03-01", "2023-03-01", "1234", "1010", "")
+#     test.run()
