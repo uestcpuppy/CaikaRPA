@@ -14,7 +14,7 @@ from io import BytesIO
 import os
 import base64
 
-LOG_PATH = config.PROJECT_ROOT + "rpa.log"
+LOG_PATH = config.PROJECT_ROOT + "web.log"
 
 EXPIRE_DATE = "2023-05-01"
 
@@ -58,6 +58,7 @@ class myHandler(BaseHTTPRequestHandler):
         #判断是否在有效期间内
         s1 = datetime.datetime.strptime(EXPIRE_DATE, "%Y-%m-%d").date()
         s2 = datetime.date.today()
+
         if(s1<s2):
             return self.responseJsonData({"result": False, "msg":"Xi Tong Shou Quan Yi Guo Qi", "expire_date":EXPIRE_DATE})
 
@@ -211,8 +212,14 @@ class myHandler(BaseHTTPRequestHandler):
             for executionId in executionIdList:
                 execution = database.getExecution(executionId)
                 xlsFilePath = config.DOWNLOAD_DIR + executionId + "\\"+execution["xls_filename"]
-                result, msg = database.importBankXls(str(execution["account_id"]), xlsFilePath)
-                res.append({"result":result, "account_name": execution["account_name"], "msg": msg})
+                try:
+                    result, msg = database.importBankXls(str(execution["account_id"]), xlsFilePath)
+                    res.append({"result":result, "account_name": execution["account_name"], "msg": msg})
+                    if not result:
+                        break
+                except Exception as e:
+                    res.append({"result": False, "account_name": execution["account_name"], "msg": str(e)})
+                    break
             self.responseJsonData(res)
 
         if self.path.find("download") !=-1:

@@ -60,7 +60,7 @@ def getSlotList():
           "LEFT JOIN account as a ON s.account_id = a.id " \
           "LEFT JOIN company as c ON a.company_id = c.id " \
           "LEFT JOIN bank as b ON a.bank_id = b.id order by slot_num asc"
-    print (sql)
+    # print (sql)
     res = getQueryResultAll(sql)
     return res
 
@@ -387,15 +387,17 @@ def createDetailList(detailList):
         con.close()
 
 def createUniqueDetailList(detailList):
-    existDataCount = 0
     # 1. 创建数据库连接对象
     con = getDb()
-    # 2. 通过连接对象获取游标
+
+    affectCount = 0
+
     with con.cursor() as cursor:
-        for detailDict in detailList:
-            try:
+        try:
+            for detailDict in detailList:
                 # 3. 通过游标执行SQL并获得执行结果
-                sql = "INSERT INTO `detail` VALUES (NULL,%s,'%s',%s,%s,%s,'%s','%s','%s','%s','%s')"%(detailDict["account_id"],
+                # detail表创建了UNIQUE索引防止数据重复, 插入的时候入遇到重复数据会自动忽略, 没有重复数据才会插入
+                sql = "INSERT IGNORE INTO `detail` VALUES (NULL,%s,'%s',%s,%s,%s,'%s','%s','%s','%s','%s')"%(detailDict["account_id"],
                                                                                       detailDict["transaction_time"],
                                                                                       detailDict["income"],
                                                                                       detailDict["expense"],
@@ -405,17 +407,17 @@ def createUniqueDetailList(detailList):
                                                                                       detailDict["customer_bank_name"],
                                                                                       detailDict["transaction_id"],
                                                                                       detailDict["summary"])
-                result = cursor.execute(sql)
-
-                # 4. 操作成功提交事务
-                con.commit()
-            except Exception as e:
-                con.rollback()
-                if str(e).find("去重") != -1:
-                    existDataCount = existDataCount +1
-    # 5. 关闭连接释放资源
-    con.close()
-    return True, str(len(detailList)-existDataCount)
+                cursor.execute(sql)
+                affectCount = affectCount + con.affected_rows()
+            # 4. 操作成功提交事务
+            con.commit()
+        except Exception as e:
+            print(str(e))
+            con.rollback()
+            return False, str(e)
+        finally:
+            con.close()
+        return True, str(affectCount)
 
 def exportDetailXls(detailList):
     wb = openpyxl.load_workbook("template.xlsx")
@@ -449,11 +451,8 @@ def importBankXls(account_id, filePath):
 
     accountInfo = getAccountInfo(account_id)
 
-    try:
-        df = pd.read_excel(filePath, accountInfo["sheet_name"], accountInfo["skip_firstrows"],keep_default_na=False)
-    except Exception as e:
-        print (str(e))
-        return False, "文件未找到"
+    df = pd.read_excel(filePath, accountInfo["sheet_name"], accountInfo["skip_firstrows"], keep_default_na=False)
+
     # 行索引
     newInexValues = df.index.values[0:len(df.index.values)-accountInfo["skip_lastrows"]]
     #如果是xls中的数据是降序, 反转list,确保导入是先发生先导入
