@@ -235,10 +235,7 @@ class Bank:
         #点击另存为按钮
         saveAsButton = auto.MenuItemControl(AutomationId="53409", searchInterval=0.5)
         saveAsButton.Click()
-        if config.WINDOWS_VERSION == "10":
-            return self.saveAsWindowsDialogFile()
-        elif config.WINDOWS_VERSION == "7":
-            return self.saveAsWindowsDialogFile()
+        return self.saveAsWindowsDialogFile()
 
     def saveAsWindowsDialogFile(self):
         #检测是否出现另存为对话框
