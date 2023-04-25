@@ -8,14 +8,12 @@ import win32con
 import win32api
 import database
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-import utils
 from DD.DDLib import DDLib
 import shutil
 import requests
 import uiautomation as auto
 import config
 import pyscreenshot
-import ukeyinfo
 import subprocess
 
 class Bank:
