@@ -16,6 +16,7 @@ import uiautomation as auto
 import config
 import pyscreenshot
 import ukeyinfo
+import subprocess
 
 class Bank:
     def __init__(self):
@@ -83,7 +84,7 @@ class Bank:
         logger.level = logging.INFO
         # 第二步：定义处理器。控制台和文本输出两种方式
         console_handler = logging.StreamHandler()
-        file_path = "./rpa.log"
+        file_path = config.DOWNLOAD_DIR + self.BatchId + "\\rpa.log"
         if os.path.exists(file_path):
             mode = 'a'
         else:
@@ -257,12 +258,35 @@ class Bank:
         else:
             return True
     def initUKey(self):
+        certCN = config.ukey_dict[int(self.SlotNum[1:3])]
+        if certCN == "0" or certCN == "":
+            return
         self.logger.info("等待UKey加载完成")
-        if ukeyinfo.getUKeyLoad(self.BankName, ukeyinfo.ACCOUNT_CN_DICT[int(self.SlotNum)], 10, 1):
+        if self.getUKeyLoad(certCN, 10, 1):
             self.logger.info("UKey加载完成")
         else:
             self.logger.info("UKey加载超时")
             raise Exception("ukey load timeout")
+
+    def getUKeyLoad(self, certCN, retrytimes, interval):
+        while retrytimes > 0:
+            certlist = self.getUKeyInfo()
+            if certlist.find(certCN) != -1:
+                return True
+            retrytimes = retrytimes - 1
+            print("not found")
+            time.sleep(interval)
+        return False
+
+    def getUKeyInfo(self):
+        # 设置PowerShell命令
+        command = 'ls cert://currentuser/my'
+        # 调用PowerShell并执行命令
+        process = subprocess.Popen(['powershell', '-command', command], stdout=subprocess.PIPE)
+        # 获取命令输出
+        output = process.communicate()[0]
+        # 打印输出结果
+        return output.decode('gbk')
 
 if __name__ == '__main__':
     a = Bank()
