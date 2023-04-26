@@ -61,7 +61,7 @@ def getPhotoDownloadFile(SlotNum, BatchId):
         return "/slot_"+SlotNum+"/"+tempFile
 
 def getLastLog(filePath, lastCount=500):
-    log = open(filePath, "r", encoding='UTF8')
+    log = open(filePath, "r", encoding='GBK')
     lines = log.readlines()
     total = len(lines)
     log.close()

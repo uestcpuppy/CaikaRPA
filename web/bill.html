@@ -143,7 +143,7 @@
                         <td id='bill_download_"+i+"'>"+getXlsDownloadStr(value)+"</td>\
                         <td id='photo_download_"+i+"'>"+getImgDownloadStr(value)+"</td>\
                         <td><a href='#' account_id='"+value["account_id"]+"' name='view'>查看</a></td>\
-                        <td><a href='#' execution_id='"+value["execution_id"]+"' name='log'>查看</a></td>\
+                        <td><a href='#' slot_num='"+i+"' execution_id='"+value["execution_id"]+"' name='log'>查看</a></td>\
                         </tr>");
                         if(value["status"]=="READY"||value["status"]=="RUNNING")
                         {
@@ -385,9 +385,8 @@
             })
 
             $("[name=log]").click(function(){
-              execution_id = $(this).attr("execution_id")
               $("#logView").html("")
-              $("#logView").load("download/"+execution_id+"/rpa.log")
+              $("#logView").load("download/"+$("#cb_"+$(this).attr("slot_num")).attr("executionId")+"/rpa.log")
               $('#logDiv').modal({clickClose: true,escapeClose: true});
             })
 
@@ -436,7 +435,7 @@
                 if(endIndex>executionList.length-1)
                   endIndex = executionList.length-1;
 
-                element.empty().append("<tr><th>批次ID</th><th>账户</th><th>银行</th><th>查询日期</th><th>执行时间</th><th>执行状态</th><th>银行流水</th><th>屏幕截图</th><th>操作</th></tr>")
+                element.empty().append("<tr><th>批次ID</th><th>账户</th><th>银行</th><th>查询日期</th><th>执行时间</th><th>执行状态</th><th>银行流水</th><th>截图</th><th>日志</th><th>操作</th></tr>")
 
                 for (var i=beginIndex;i<=endIndex;i++)
                 {
@@ -454,10 +453,17 @@
                         <td width='150'><span>"+taskStatusMap.get(value["status"])+"</span></td>\
                         <td width='100'>"+getXlsDownloadStr(value)+"</td>\
                         <td width='100'>"+getImgDownloadStr(value)+"</td>\
+                        <td width='100'><a href='#' execution_id='"+value["execution_id"]+"' name='log'>查看</a></td>\
                         <td width='100'><a href='javascript:importExecution("+value["id"]+")'>导入流水</a></td>\
                         </tr>");
 
                 }
+
+                $("#executionTb a[name=log]").click(function(){
+                $("#logView").html("")
+                $("#logView").load("download/"+$(this).attr("execution_id")+"/rpa.log")
+                $('#logDiv').modal({clickClose: true,escapeClose: true});
+                 })
                 return false;
             }
         });

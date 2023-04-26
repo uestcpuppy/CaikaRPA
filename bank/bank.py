@@ -47,9 +47,9 @@ class Bank:
         self.DDServer = "127.0.0.1:"+str(config.PORT_NUMBER_DD)
         if self.Browser != "":
             self.initWebdriver()
+        self.initDownloadDir()
         self.initLogger()
         self.clearTempDownloadDir()
-        self.initDownloadDir()
         self.xlsFileName = ""
         self.imgFileName = ""
         self.Index = int(self.SlotNum[-1])
