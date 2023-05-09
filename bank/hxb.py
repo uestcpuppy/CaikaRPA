@@ -30,7 +30,7 @@ class hxb(Bank):
     self.EndDate = EndDate
     self.SlotNum = 0
     self.Logger = ""
-    self.Browser = "Ie"
+    self.Browser = "IeInEdge"
     self.BatchId = BatchId
     self.SlotNum = SlotNum
     super().__init__()
@@ -105,7 +105,6 @@ class hxb(Bank):
   def quit(self):
       self.Webdriver.quit()
       return True
-
   # def run(self):
   #     self.login()
   #     self.query()

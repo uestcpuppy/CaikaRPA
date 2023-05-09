@@ -47,13 +47,6 @@ class Bank:
         self.DDServer = "127.0.0.1:"+str(config.PORT_NUMBER_DD)
         if self.Browser != "":
             self.initWebdriver()
-
-        #获取isBill, isBalance, isAck并初始化
-        execution = database.getExecution(self.BatchId)
-        self.isBill = execution["is_bill"]
-        self.isBalance = execution["is_balance"]
-        self.isAck = execution["is_ack"]
-
         self.initDownloadDir()
         self.initLogger()
         self.clearTempDownloadDir()
@@ -80,21 +73,6 @@ class Bank:
         return True
     def quit(self):
         return True
-    def queryBalance(self):
-        pass
-    def run(self):
-        #如果是下载流水
-        if self.isBill:
-            self.login()
-            self.query()
-            self.download()
-            self.quit()
-        #如果是查询余额
-        if self.isBalance:
-            self.login()
-            self.queryBalance()
-            self.quit()
-
     def initLogger(self):
         # 第一步：创建日志器
         logger = logging.getLogger()
@@ -275,9 +253,6 @@ class Bank:
         else:
             return True
     def initUKey(self):
-        if not int(self.SlotNum[1:3]) in config.ukey_dict:
-            self.logger.info("未找到UKey证书信息,请在配置文件中添加")
-            return False
         certCN = config.ukey_dict[int(self.SlotNum[1:3])]
         if certCN == "0" or certCN == "":
             return
