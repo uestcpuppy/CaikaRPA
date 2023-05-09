@@ -111,10 +111,10 @@ class spdb(Bank):
   def quit(self):
       self.Webdriver.quit()
       return True
-  def run(self):
-      self.login()
-      self.query()
-      self.download()
-      time.sleep(3)
-      self.quit()
+  # def run(self):
+  #     self.login()
+  #     self.query()
+  #     self.download()
+  #     time.sleep(3)
+  #     self.quit()
 

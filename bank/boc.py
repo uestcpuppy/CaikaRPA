@@ -103,8 +103,8 @@ class boc(Bank):
         self.logger.info("退出浏览器")
         os.system("taskkill /F /IM iexplore.exe")
         return True
-    def run(self):
-        self.login()
-        self.query()
-        self.download()
-        self.quit()
+    # def run(self):
+    #     self.login()
+    #     self.query()
+    #     self.download()
+    #     self.quit()

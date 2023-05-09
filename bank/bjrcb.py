@@ -91,8 +91,8 @@ class bjrcb(Bank):
         self.Webdriver.quit()
         return True
 
-    def run(self):
-        self.login()
-        self.query()
-        self.download()
-        self.quit()
+    # def run(self):
+    #     self.login()
+    #     self.query()
+    #     self.download()
+    #     self.quit()

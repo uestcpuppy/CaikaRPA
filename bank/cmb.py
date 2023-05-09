@@ -121,13 +121,8 @@ class cmb(Bank):
         os.system("taskkill /F /IM Firmbank.exe")
         return True
 
-    def run(self):
-        self.login()
-        self.query()
-        self.download()
-        self.quit()
-
-# if __name__ == '__main__':
-#
-#     test = cmb("19950512", "19950512", "2023-03-01", "2023-03-01", "1234", "1010", "")
-#     test.run()
+    # def run(self):
+    #     self.login()
+    #     self.query()
+    #     self.download()
+    #     self.quit()

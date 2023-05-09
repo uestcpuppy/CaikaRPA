@@ -1,3 +1,4 @@
+import database
 from bank.bank import Bank
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -52,6 +53,7 @@ class icbc(Bank):
     self.pressEnterRemote()
     time.sleep(1)
     self.logger.info("结束登录")
+    # time.sleep(1000)
     return True
 
   def query(self):
@@ -62,7 +64,6 @@ class icbc(Bank):
         EC.element_to_be_clickable((By.XPATH, '//*[@id="acctRightBlock"]/div/div[3]/a[1]')))
     self.logger.info("点击首页的明细查询")
     self.Webdriver.find_element(By.XPATH, '//*[@id="acctRightBlock"]/div/div[3]/a[1]').click()
-    # time.sleep(5)
     #下载按钮
     WebDriverWait(self.Webdriver, 10, 0.2).until(
         EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div[1]/div/form[13]/div[11]/button[4]')))
@@ -95,12 +96,28 @@ class icbc(Bank):
           self.logger.info("下载成功:"+downloadFile)
       self.logger.info("结束下载")
       return True
+
+  def queryBalance(self):
+      # document.querySelector("").innerText
+      self.logger.info("查询账户余额")
+      WebDriverWait(self.Webdriver, 10, 0.2).until(
+          EC.frame_to_be_available_and_switch_to_it((By.NAME, "mainFrame")))
+      self.Webdriver.find_element(By.ID, 'searchBtn').click()
+      tempStr = self.Webdriver.find_element(By.CSS_SELECTOR, '#balancediv > span.ebankc-mcp-marginright20').text
+      if tempStr.find("人民币") == -1:
+          self.logger.info("查询余额失败")
+      else:
+          self.logger.info("查询余额成功:" + tempStr[4:-1].replace(",",""))
+          database.updateExecution(executionId=self.BatchId, balance=tempStr[4:-1].replace(",",""))
+      time.sleep(3)
+      return True
+
   def quit(self):
       self.Webdriver.close()
       return True
-  def run(self):
-      self.login()
-      self.query()
-      self.download()
-      time.sleep(5)
-      self.quit()
+  # def run(self):
+  #     self.login()
+  #     self.query()
+  #     self.download()
+  #     time.sleep(5)
+  #     self.quit()

@@ -109,10 +109,10 @@ class citic(Bank):
   def quit(self):
       self.Webdriver.close()
       return True
-  def run(self):
-      self.login()
-      self.query()
-      self.download()
-      time.sleep(10)
-      self.quit()
+  # def run(self):
+  #     self.login()
+  #     self.query()
+  #     self.download()
+  #     time.sleep(10)
+  #     self.quit()
 

@@ -138,9 +138,9 @@ class psbc(Bank):
         self.Webdriver.quit()
         return True
 
-    def run(self):
-        # time.sleep(5)
-        self.login()
-        self.query()
-        self.download()
-        self.quit()
+    # def run(self):
+    #     # time.sleep(5)
+    #     self.login()
+    #     self.query()
+    #     self.download()
+    #     self.quit()
