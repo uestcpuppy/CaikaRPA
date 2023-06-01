@@ -305,17 +305,27 @@ class Bank:
             if certlist.find(certCN) != -1:
                 return True
             retrytimes = retrytimes - 1
-            print("not found")
+            self.logger.info("证书未找到, 重试...")
             time.sleep(interval)
         return False
 
+    # def getUKeyInfo(self):
+    #     #certutil -store -user my
+    #     # 设置PowerShell命令
+    #     command = 'ls cert://currentuser/my'
+    #     # 调用PowerShell并执行命令
+    #     process = subprocess.Popen(['powershell', '-command', command], stdout=subprocess.PIPE)
+    #     # 获取命令输出
+    #     output = process.communicate()[0]
+    #     # 打印输出结果
+    #     return output.decode('gbk')
+
     def getUKeyInfo(self):
-        # 设置PowerShell命令
-        command = 'ls cert://currentuser/my'
         # 调用PowerShell并执行命令
-        process = subprocess.Popen(['powershell', '-command', command], stdout=subprocess.PIPE)
+        process = subprocess.Popen(['certutil', '-store', '-user', 'my'], stdout=subprocess.PIPE)
         # 获取命令输出
         output = process.communicate()[0]
+        print(output)
         # 打印输出结果
         return output.decode('gbk')
 

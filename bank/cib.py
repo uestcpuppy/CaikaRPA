@@ -140,19 +140,29 @@ class cib(Bank):
       self.logger.info("开始查询")
       self.logger.info("点击活期账户查询页面")
       self.Webdriver.execute_script('document.getElementById("130010").click()')
-      self.logger.info("切换到workframe")
-      WebDriverWait(self.Webdriver, 10, 0.2).until(
-          EC.frame_to_be_available_and_switch_to_it((By.NAME, "workframe")))
-      accountNumStr = self.Webdriver.find_element(By.CSS_SELECTOR, 'td[aria-describedby="list_acctNo"]').text
-      tempStr = self.Webdriver.find_element(By.CSS_SELECTOR, 'td[aria-describedby="list_availableBalance"]').text
-      balanceStr = tempStr.replace(",","").strip()
-      # self.AccountNum = "321720100100053525"
+      retrytimes = 5
+      accountNumStr = ""
+      balanceStr = ""
+      while retrytimes>0:
+        try:
+            self.logger.info("切换到workframe")
+            self.Webdriver.implicitly_wait(2)
+            self.Webdriver.switch_to.frame("workframe")
+            # WebDriverWait(self.Webdriver, 10, 0.2).until(EC.frame_to_be_available_and_switch_to_it((By.NAME, "workframe")))
+            accountNumStr = self.Webdriver.find_element(By.CSS_SELECTOR, 'td[aria-describedby="list_acctNo"]').text
+            tempStr = self.Webdriver.find_element(By.CSS_SELECTOR, 'td[aria-describedby="list_availableBalance"]').text
+            balanceStr = tempStr.replace(",","").strip()
+            self.logger.info("切换到workframe成功")
+            break
+        except Exception as e:
+            self.logger.info("切换到workframe失败")
+            retrytimes = retrytimes - 1
+
       if accountNumStr.find(self.AccountNum) != -1:
           self.logger.info("查询余额成功:" + balanceStr)
           database.updateExecution(executionId=self.BatchId, balance=balanceStr)
       else:
           self.logger.info("查询余额失败: 未找到对应账户数据")
-      time.sleep(2)
       return True
 
   def quit(self):

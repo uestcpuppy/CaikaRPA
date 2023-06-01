@@ -111,6 +111,7 @@ class hxb(Bank):
       self.logger.info("开始查询余额")
       self.logger.info("点击账户管理菜单")
       self.Webdriver.find_element(By.XPATH, '/HTML/BODY/DIV[3]/DIV/UL/LI[2]/A').click()
+      time.sleep(8)
       accountStr = self.Webdriver.find_element(By.XPATH,'/HTML/BODY/DIV[4]/DIV[2]/TABLE[1]/TBODY/TR[2]/TD[3]').text
       balanceStr = self.Webdriver.find_element(By.XPATH,'/HTML/BODY/DIV[4]/DIV[2]/TABLE[1]/TBODY/TR[2]/TD[6]').text
       balanceStr = balanceStr.replace(",", "").strip()
@@ -119,5 +120,4 @@ class hxb(Bank):
           database.updateExecution(executionId=self.BatchId, balance=balanceStr)
       else:
           self.logger.info("查询余额失败: 未找到对应账户数据")
-      time.sleep(3)
       return True
