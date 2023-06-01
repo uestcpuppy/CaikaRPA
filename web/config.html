@@ -32,15 +32,15 @@
       }
 
       #tb_account {
-        width: 1200px;
+        width: 80%;
       }
 
       #tb_template {
-        width: 2000px;
+        width: 3000px;
       }
 
       #tb_slot {
-        width: 500px;
+        width: 60%;
       }
 
       table {
@@ -97,6 +97,11 @@
       {
         background-color: #ddd;
       }
+      #tb_template_div, #tb_slot_div
+      {
+        overflow-x:scroll;
+      }
+
     </style>
   <script type="text/javascript"src="jquery.min.js"></script>
   <script type="text/javascript" src="jquery.modal.min.js"></script>
@@ -166,6 +171,10 @@
       TRANSACTION_ID - 交易流水号对应的列号</br>
       SUMMARY - 摘要对应的列号</br>
       TIME_FORMAT - 交易时间的格式, 例如: %Y-%m-%d %H:%M:%S</br>
+      ORDER - 0:交易日期升序 1:交易日期降序</br>
+      FIELD_1 - 自定义字段1</br>
+      FIELD_2 - 自定义字段2</br>
+      FIELD_3 - 自定义字段3</br>
     </p>
     <div id="templateForm" class="form">
       <div><span>ID:</span><input name="id" readonly="readonly"/></div>
@@ -185,9 +194,14 @@
       <div><span>SUMMARY:</span><input name="summary" /></div>
       <div><span>TIME_FORMAT:</span><input name="timeFormat" /></div>
       <div><span>ORDER:</span><input name="order" /></div>
+      <div><span>FIELD_1:</span><input name="field1" /></div>
+      <div><span>FIELD_2:</span><input name="field2" /></div>
+      <div><span>FIELD_3:</span><input name="field3" /></div>
       <div><input  id="addTemplate" type="button" value="新增"/><input  id="updateTemplate" type="button" value="更新"/></div>
     </div>
+    <div id="tb_template_div">
     <table id="tb_template"></table>
+    </div>
   </div>
 
   <div class="divCls">
@@ -203,7 +217,9 @@
       <div><span>AccountID:</span><input name="accountId"/></div>
       <div><input  id="addSlot" type="button" value="新增"/></div>
     </div>
-    <table id="tb_slot"></table>
+    <div id="tb_slot_div">
+      <table id="tb_slot"></table>
+    </div>
   </div>
 
   </body>
@@ -413,6 +429,9 @@
                 <th>SUMMARY</th>\
                 <th>TIME_FORMAT</th>\
                 <th>ORDER</th>\
+                <th>FIELD_1</th>\
+                <th>FIELD_2</th>\
+                <th>FIELD_3</th>\
                 <th>操作</th></tr>"
                 $("#tb_template").empty()
                 $("#tb_template").append(str)
@@ -436,6 +455,9 @@
                         <td>"+value["summary"]+"</td>\
                         <td>"+value["time_format"]+"</td>\
                         <td>"+value["order"]+"</td>\
+                        <td>"+value["field_1"]+"</td>\
+                        <td>"+value["field_2"]+"</td>\
+                        <td>"+value["field_3"]+"</td>\
                         <td><input type='button' name='update' value='编辑'/><input type='button' name='delete' value='删除'/></td>\
                         </tr>");
                     });
@@ -479,6 +501,12 @@
                 $("#templateForm input[name='timeFormat']").val(currentElement.text())
                 currentElement = currentElement.next()
                 $("#templateForm input[name='order']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='field1']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='field2']").val(currentElement.text())
+                currentElement = currentElement.next()
+                $("#templateForm input[name='field3']").val(currentElement.text())
             })
 
             $("#tb_template input[name='delete']").click(function(){
@@ -524,6 +552,9 @@
                 url = url + "&summary="+$("#templateForm input[name='summary']").val()
                 url = url + "&timeFormat="+$("#templateForm input[name='timeFormat']").val()
                 url = url + "&order="+$("#templateForm input[name='order']").val()
+                url = url + "&field1="+$("#templateForm input[name='field1']").val()
+                url = url + "&field2="+$("#templateForm input[name='field2']").val()
+                url = url + "&field3="+$("#templateForm input[name='field3']").val()
                 $.getJSON(url,function(data){
                       msg(data["result"])
                       window.location.reload()
@@ -549,6 +580,9 @@
                 url = url + "&summary="+$("#templateForm input[name='summary']").val()
                 url = url + "&timeFormat="+$("#templateForm input[name='timeFormat']").val()
                 url = url + "&order="+$("#templateForm input[name='order']").val()
+                url = url + "&field1="+$("#templateForm input[name='field1']").val()
+                url = url + "&field2="+$("#templateForm input[name='field2']").val()
+                url = url + "&field3="+$("#templateForm input[name='field3']").val()
                 $.getJSON(url,function(data){
                       msg(data["result"])
                       window.location.reload()

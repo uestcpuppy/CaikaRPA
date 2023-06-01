@@ -275,7 +275,7 @@ def createExecution(slotNum,accountId,queryBeginDate,queryEndDate,isBill,isBalan
         con.close()
 
 def getExecution(executionId):
-    sql = "SELECT e.*, a.short_name as account_name from execution as e, account as a where e.account_id = a.id and e.id = "+executionId
+    sql = "SELECT e.*, a.short_name as account_name, a.account_num from execution as e, account as a where e.account_id = a.id and e.id = "+executionId
     return getQueryResultOne(sql)
 
 def getExecutionList(accountId):

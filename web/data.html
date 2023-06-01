@@ -103,7 +103,7 @@
                 AccountId = $("#account option:selected").val()
                 BeginDate = $("#beginDate").val()
                 EndDate = $("#endDate").val()
-                str = "<tr><th>交易日期</th><th>我方账号</th><th>收入金额</th><th>支出金额</th><th>余额</th><th>对方开户银行</th><th>对方账户</th><th>对方账号</th><th>摘要</th></tr>"
+                str = "<tr><th>交易日期</th><th>我方账号</th><th>收入金额</th><th>支出金额</th><th>余额</th><th>对方开户银行</th><th>对方账户</th><th>对方账号</th><th>摘要</th><th>自定义字段1</th><th>自定义字段2</th><th>自定义字段3</th></tr>"
                 $("#tb").empty()
                 $("#tb").append(str)
                 //查询当页数据
@@ -128,6 +128,9 @@
                         <td><div class=\"tooltip\">"+new_customer_account_name+"<span class=\"tooltiptext\">"+value["customer_account_name"]+"</span></div></td>\
                         <td>"+value["customer_account_num"]+"</td>\
                         <td><div class=\"tooltip\">"+newSummary+"<span class=\"tooltiptext\">"+value["summary"]+"</span></div></td>\
+                        <td><div class=\"tooltip\">"+Substr(value["field_1"], 0, 20)+"<span class=\"tooltiptext\">"+value["field_1"]+"</span></div></td>\
+                        <td><div class=\"tooltip\">"+Substr(value["field_2"], 0, 20)+"<span class=\"tooltiptext\">"+value["field_2"]+"</span></div></td>\
+                        <td><div class=\"tooltip\">"+Substr(value["field_3"], 0, 20)+"<span class=\"tooltiptext\">"+value["field_3"]+"</span></div></td>\
                         </tr>");
                     });
                 });

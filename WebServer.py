@@ -16,7 +16,7 @@ import base64
 
 LOG_PATH = config.PROJECT_ROOT + "web.log"
 
-EXPIRE_DATE = "2023-05-01"
+EXPIRE_DATE = "2023-10-01"
 
 class DateEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -83,7 +83,29 @@ class myHandler(BaseHTTPRequestHandler):
             summary = self.getQueryStrParam("summary")
             timeFormat = self.getQueryStrParam("timeFormat")
             order = self.getQueryStrParam("order")
-            result = database.updateTemplate(id, templateName, bankId, sheetName, skipFirstRows, skipLastRows, transactionTime, income, expense, balance,customerAccountName, customerAccountNum, customerBankName, transactionId, summary, timeFormat,order)
+            field1 = self.getQueryStrParam("field1")
+            field2 = self.getQueryStrParam("field2")
+            field3 = self.getQueryStrParam("field3")
+            result = database.updateTemplate(id,
+                                             templateName,
+                                             bankId,
+                                             sheetName,
+                                             skipFirstRows,
+                                             skipLastRows,
+                                             transactionTime,
+                                             income,
+                                             expense,
+                                             balance,
+                                             customerAccountName,
+                                             customerAccountNum,
+                                             customerBankName,
+                                             transactionId,
+                                             summary,
+                                             timeFormat,
+                                             order,
+                                             field1,
+                                             field2,
+                                             field3)
             self.responseJsonData({"result":result})
 
         if self.path.find("createTemplate") !=-1:
@@ -103,6 +125,9 @@ class myHandler(BaseHTTPRequestHandler):
             summary = self.getQueryStrParam("summary")
             timeFormat = self.getQueryStrParam("timeFormat")
             order = self.getQueryStrParam("order")
+            field1 = self.getQueryStrParam("field1")
+            field2 = self.getQueryStrParam("field2")
+            field3 = self.getQueryStrParam("field3")
             result = database.createTemplate(templateName,
                                              bankId,
                                              sheetName,
@@ -118,7 +143,10 @@ class myHandler(BaseHTTPRequestHandler):
                                              transactionId,
                                              summary,
                                              timeFormat,
-                                             order)
+                                             order,
+                                             field1,
+                                             field2,
+                                             field3)
             self.responseJsonData({"result":result})
 
         if self.path.find("updateCompany") !=-1:
@@ -325,8 +353,11 @@ class myHandler(BaseHTTPRequestHandler):
             slotNum = self.getQueryStrParam("slotNum")
             queryBeginDate = self.getQueryStrParam("beginDate")
             queryEndDate = self.getQueryStrParam("endDate")
+            isBill = int(self.getQueryStrParam("isBill")=="true")
+            isBalance = int(self.getQueryStrParam("isBalance")=="true")
+            isAck = int(self.getQueryStrParam("isAck")=="true")
             accounInfo = database.getSlotInfo(slotNum)
-            result = database.createExecution(slotNum,accounInfo["account_id"],queryBeginDate,queryEndDate)
+            result = database.createExecution(slotNum,accounInfo["account_id"],queryBeginDate,queryEndDate,isBill,isBalance,isAck)
             self.responseJsonData({"result":result})
 
         if self.path=="/":
