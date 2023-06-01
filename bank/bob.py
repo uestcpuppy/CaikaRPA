@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 from selenium.webdriver.common.keys import Keys
+import database
 
 class bob(Bank):
     def __init__(self, LoginPasswd, ConfirmPasswd, BeginDate, EndDate, BatchId, SlotNum, LoginAccount):
@@ -50,19 +51,17 @@ class bob(Bank):
         self.logger.info("等待登录页加载完成")
         WebDriverWait(self.Webdriver, 15, 0.2).until(
             EC.url_to_be("https://cbank.bankofbeijing.com.cn/bccb/corporbank/logon.jsp"))
-        self.logger.info("结束登录")
-        return True
-
-    def query(self):
-
-        self.logger.info("开始查询")
-
         try:
             WebDriverWait(self.Webdriver, 3, 0.2).until(EC.element_to_be_clickable((By.ID, 'skip')))
             self.Webdriver.find_element(By.ID, 'skip').click()
         except Exception as e:
             self.logger.info("未出现skip页")
 
+        self.logger.info("结束登录")
+        return True
+
+    def query(self):
+        self.logger.info("开始查询")
         self.logger.info("切换到tranFrame")
         WebDriverWait(self.Webdriver, 10, 0.2).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "tranFrame")))
         time.sleep(3)
@@ -73,7 +72,6 @@ class bob(Bank):
         time.sleep(2)
         self.logger.info("点击开始日期")
         WebDriverWait(self.Webdriver, 10, 0.2).until(EC.element_to_be_clickable((By.CSS_SELECTOR,'#accountDetail > div.header > form > div.header-content > div:nth-child(3) > div > div > input:nth-child(2)')))
-
         if self.Index != 0:
             self.logger.info("选择账户")
             inputElement = self.Webdriver.find_element(By.XPATH, '//*[@id="accountDetail"]/div[1]/form/div[1]/div[2]/div/div/div[1]/input')
@@ -123,12 +121,28 @@ class bob(Bank):
         self.logger.info("结束下载")
         return True
 
+    def queryBalance(self):
+        self.logger.info("切换到tranFrame")
+        WebDriverWait(self.Webdriver, 10, 0.2).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "tranFrame")))
+        time.sleep(3)
+        self.logger.info("等待余额查询按钮")
+        WebDriverWait(self.Webdriver, 10, 0.2).until(EC.element_to_be_clickable((By.CSS_SELECTOR,'body>div>div>div>div>div>section>div>div>div>div.main-content>div>div:nth-child(1)>div.common>div.content>div>div:nth-child(1)>p')))
+        self.logger.info("点击余额查询按钮")
+        self.Webdriver.find_element(By.CSS_SELECTOR,'body>div>div>div>div>div>section>div>div>div>div.main-content>div>div:nth-child(1)>div.common>div.content>div>div:nth-child(1)>p').click()
+        time.sleep(2)
+        self.logger.info("点击确定按钮")
+        self.Webdriver.find_element(By.XPATH, '/html/body/div/div/div/div/div[1]/section/div/div/form/div[5]/div/div/button[1]').click()
+        accountStr = self.Webdriver.find_element(By.XPATH, '/html/body/div/div/div/div/div[1]/section/div/div/div[2]/div[2]/div[1]/div[3]/table/tbody/tr/td[2]/div').text
+        balanceStr = self.Webdriver.find_element(By.XPATH, '/html/body/div/div/div/div/div[1]/section/div/div/div[2]/div[2]/div[1]/div[3]/table/tbody/tr/td[7]/div').text
+        balanceStr = balanceStr.replace(",", "").strip()
+        if accountStr.find(self.AccountNum) != -1:
+            self.logger.info("查询余额成功:" + balanceStr)
+            database.updateExecution(executionId=self.BatchId, balance=balanceStr)
+        else:
+            self.logger.info("查询余额失败: 未找到对应账户数据")
+        time.sleep(3)
+        return True
+
     def quit(self):
         self.Webdriver.quit()
         return True
-
-    # def run(self):
-    #     self.login()
-    #     self.query()
-    #     self.download()
-    #     self.quit()

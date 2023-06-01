@@ -9,11 +9,12 @@ import config
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import database
 
 class cmb(Bank):
     def __init__(self, LoginPasswd, ConfirmPasswd, BeginDate, EndDate, BatchId, SlotNum, LoginAccount):
         self.BankName = "CMB"
-        self.BinPath = "C:\\Program Files (x86)\\CMB\\FirmBank\\Bin\\Firmbank.exe"
+        self.BinPath = config.CMB_BIN_PATH
         self.LoginUrl = ""
         self.LoginPasswd = LoginPasswd
         self.ConfirmPasswd = ConfirmPasswd
@@ -27,6 +28,8 @@ class cmb(Bank):
         self.Browser = ""
         self.BatchId = BatchId
         self.SlotNum = SlotNum
+        # self.logger.info("清空进程")
+        os.system("taskkill /F /IM Firmbank.exe")
         super().__init__()
 
     def login(self):
@@ -39,7 +42,7 @@ class cmb(Bank):
         options.add_argument('--remote-debugging-port=9222')  # 指定调试端口
         options.binary_location = self.BinPath  # 应用程序的路径
         #符合招行客户端版本的chromedriver
-        self.Webdriver = webdriver.Chrome(executable_path='D:\\caika\\soft\\chromedriver.exe', options=options)
+        self.Webdriver = webdriver.Chrome(executable_path=config.CMD_DRIVER_PATH, options=options)
         self.Webdriver.implicitly_wait(config.IMPLICITLY_WAIT)
         self.logger.info("开始登录 " + self.BankName + " " + self.BinPath)
         # 打开网银客户端
@@ -109,6 +112,7 @@ class cmb(Bank):
     def download(self):
         self.logger.info("开始下载")
         self.logger.info("点击导出全部")
+        WebDriverWait(self.Webdriver, 10, 0.2).until(EC.element_to_be_clickable((By.ID, "btnExportSingleAll")))
         self.Webdriver.find_element(By.ID, 'btnExportSingleAll').click()
         if self.saveAsWindowsDialogFile():
             self.logger.info("下载成功")
@@ -116,13 +120,33 @@ class cmb(Bank):
             self.logger.info("下载失败")
             raise Exception("下载失败")
 
+    def queryBalance(self):
+        self.logger.info("切换窗口")
+        self.Webdriver.switch_to.window(self.Webdriver.window_handles[1])
+        self.logger.info("点击交易明细")
+        self.Webdriver.find_element(By.ID, 'btnTransaction').click()
+        self.logger.info("等待查询页加载完成后切换至查询窗口")
+        WebDriverWait(self.Webdriver, 10, 0.2).until(EC.number_of_windows_to_be(7))
+        self.Webdriver.switch_to.window(self.Webdriver.window_handles[6])
+        self.Webdriver.find_element(By.ID, 'btnQueryAccountSingle').click()
+        self.logger.info("查询账户余额")
+        # WebDriverWait(self.Webdriver, 10, 0.2).until(
+        #     EC.frame_to_be_available_and_switch_to_it((By.XPATH, '/html/body/div[5]/div/div[2]/iframe')))
+        fr = self.Webdriver.find_element(By.XPATH, '/html/body/div[5]/div/div[2]/iframe')
+        self.Webdriver.switch_to.frame(fr)
+        WebDriverWait(self.Webdriver, 10, 0.2).until(EC.visibility_of_element_located((By.ID, 'spanACCNBR')))
+        accountStr = self.Webdriver.find_element(By.ID, 'spanACCNBR').text
+        balanceStr = self.Webdriver.find_element(By.ID, 'spanONLBLV').text
+        balanceStr = balanceStr.replace(",", "").replace("元", "").strip()
+        # self.AccountNum = "311902472710501"
+        if accountStr.find(self.AccountNum) != -1:
+            self.logger.info("查询余额成功:" + balanceStr)
+            database.updateExecution(executionId=self.BatchId, balance=balanceStr)
+        else:
+            self.logger.info("查询余额失败: 未找到对应账户数据")
+        return True
+
     def quit(self):
         self.logger.info("退出客户端")
         os.system("taskkill /F /IM Firmbank.exe")
         return True
-
-    # def run(self):
-    #     self.login()
-    #     self.query()
-    #     self.download()
-    #     self.quit()

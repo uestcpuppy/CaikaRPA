@@ -5,10 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 from selenium.webdriver.common.keys import Keys
 import threading
-import uiautomation as auto
-from DD.DDLib import DDLib
 import config
-import os
 import database
 
 def worker(pwd, obj):
@@ -45,34 +42,45 @@ class cib(Bank):
 
   def login(self):
     self.logger.info("启动异步线程确认证书,输入密码,按回车")
-    # begin
     t = threading.Thread(target=worker, args=(self.ConfirmPasswd,self), daemon=True)
     t.start()
-    # end
     self.logger.info("开始登录 "+self.BankName+" "+ self.LoginUrl)
     self.Webdriver.get(self.LoginUrl)
-    # begin
+    # time.sleep(3)
+    # self.logger.info("输入U盾密码并回车")
+    # self.sendkeysRemote(self.ConfirmPasswd)
+    # time.sleep(2)
+    # self.pressEnterRemote()
     time.sleep(3)
     WebDriverWait(self.Webdriver, 10, 0.2).until(
         EC.element_to_be_clickable((By.ID,"loginName")))
     time.sleep(1)
     self.logger.info("输入登录账户名")
+    # self.sendkeysRemote(self.Account)
+    # self.pressAit(self.Account)
     self.Webdriver.find_element(By.ID, 'loginName').send_keys(self.Account)
     time.sleep(1)
     self.logger.info("点击登录密码输入框")
     self.Webdriver.execute_script('document.querySelector("#password").focus()')
     time.sleep(1)
-    self.logger.info("输入登录密码并回车")
-    # self.sendkeysRemote(self.LoginPasswd)
+    self.logger.info("输入登录密码")
     self.pressAit(self.LoginPasswd)
-    time.sleep(2)
+    time.sleep(1)
+    self.logger.info("勾选隐私条款")
+    self.Webdriver.find_element(By.ID, 'privacy_check').click()
+    time.sleep(1)
+    self.logger.info("确认回车")
     self.pressEnterRemote()
-    # end
     self.logger.info("等待首页加载完毕")
-    WebDriverWait(self.Webdriver, 20, 0.2).until(
+    WebDriverWait(self.Webdriver, 10, 0.2).until(
         EC.url_to_be("https://corporatebank.cib.com.cn/firm/main/mainx"))
+    self.logger.info("结束登录")
+    return True
 
+  def query(self):
+    self.logger.info("开始查询")
     self.logger.info("关闭广告")
+
     try:
         self.Webdriver.implicitly_wait(2)
         WebDriverWait(self.Webdriver, 3, 0.2).until(
@@ -82,11 +90,7 @@ class cib(Bank):
         self.logger.info("未出现广告页")
     finally:
         self.Webdriver.implicitly_wait(config.IMPLICITLY_WAIT)
-    self.logger.info("结束登录")
-    return True
 
-  def query(self):
-    self.logger.info("开始查询")
     self.logger.info("点击交易明细查询菜单")
     self.Webdriver.execute_script('document.getElementById("130100").click()')
     time.sleep(3)
@@ -121,6 +125,7 @@ class cib(Bank):
           self.logger.info("切换到dialogFrame失败, 查询数据为空, 结束下载")
           self.saveScreenShot()
           return True
+      # time.sleep(300)
       self.logger.info("点击下载图标")
       self.Webdriver.execute_script('document.querySelector("div.box img").click()')
       time.sleep(2)

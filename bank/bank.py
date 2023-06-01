@@ -45,14 +45,16 @@ class Bank:
         #关闭邮储窗口
         # self.closePCBC()
         self.DDServer = "127.0.0.1:"+str(config.PORT_NUMBER_DD)
-        # if self.Browser != "":
-        #     self.initWebdriver()
+        if self.Browser != "":
+            self.initWebdriver()
 
         #获取isBill, isBalance, isAck并初始化
         execution = database.getExecution(self.BatchId)
         self.isBill = execution["is_bill"]
         self.isBalance = execution["is_balance"]
         self.isAck = execution["is_ack"]
+        #初始化AccountNum
+        self.AccountNum = execution["account_num"]
 
         self.initDownloadDir()
         self.initLogger()
@@ -209,7 +211,16 @@ class Bank:
     #此方法用于下载完成后对文件的处理
     def processDownloadFile(self):
         #检查临时文件夹下是否有文件
-        tempFile = self.getFirstFileName(self.DownloadTempPath, False)
+        tempFile = ""
+        retrytimes = 15
+        while retrytimes>0:
+            tempFile = self.getFirstFileName(self.DownloadTempPath, False)
+            if tempFile != "":
+                break
+            else:
+                time.sleep(1)
+                retrytimes = retrytimes - 1
+
         if tempFile == "":
             return ""
         else:
@@ -232,7 +243,7 @@ class Bank:
 
     def getFirstFileName(self, fileDir, fullPath=True):
         file_list = os.listdir(fileDir)
-        if len(file_list) == 1:
+        if len(file_list) == 1 and file_list[0].find(".tmp")==-1:
             if fullPath:
                 return fileDir + "\\" + file_list[0]
             else:

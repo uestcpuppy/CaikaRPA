@@ -6,6 +6,7 @@ import time
 from selenium.webdriver.common.keys import Keys
 import threading
 from DD.DDLib import DDLib
+import database
 
 def worker(pwd):
     time.sleep(5)
@@ -49,11 +50,6 @@ class jlbank(Bank):
         self.logger.info("点击登陆按钮")
         self.Webdriver.find_element(By.ID, "loginBtn").click()
         WebDriverWait(self.Webdriver, 15, 0.2).until(EC.url_contains("index"))
-        self.logger.info("结束登录")
-        return True
-
-    def query(self):
-        self.logger.info("开始查询")
         try:
             WebDriverWait(self.Webdriver, 3, 0.2).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@id="outBody"]/DIV[3]/DIV/DIV[3]/BUTTON')))
@@ -61,6 +57,11 @@ class jlbank(Bank):
             self.logger.info("发现多个证书,已关闭")
         except Exception as e:
             self.logger.info("未发现多个证书")
+        self.logger.info("结束登录")
+        return True
+
+    def query(self):
+        self.logger.info("开始查询")
         self.logger.info("点击账户明细")
         self.Webdriver.find_element(By.XPATH,'//*[@id="router-view"]/DIV/DIV/DIV[4]/DIV[3]/DIV[2]/DIV/DIV/DIV[3]/DIV[3]').click()
         WebDriverWait(self.Webdriver, 10, 0.2).until(
@@ -94,9 +95,15 @@ class jlbank(Bank):
         self.Webdriver.quit()
         return True
 
-    # def run(self):
-    #     # time.sleep(5)
-    #     self.login()
-    #     self.query()
-    #     self.download()
-    #     self.quit()
+    def queryBalance(self):
+        self.logger.info("开始查询余额")
+        accountStr = self.Webdriver.find_element(By.XPATH, '//*[@id="router-view"]/DIV/DIV/DIV[4]/DIV[3]/DIV[1]/DIV/DIV/SPAN[3]').text
+        balanceStr = self.Webdriver.find_element(By.XPATH, '//*[@id="router-view"]/DIV/DIV/DIV[4]/DIV[3]/DIV[2]/DIV/DIV/DIV[2]/DIV[1]/DIV[2]').text
+        balanceStr = balanceStr.replace(",", "").strip()
+        if accountStr.find(self.AccountNum) != -1:
+            self.logger.info("查询余额成功:" + balanceStr)
+            database.updateExecution(executionId=self.BatchId, balance=balanceStr)
+        else:
+            self.logger.info("查询余额失败: 未找到对应账户数据")
+        time.sleep(3)
+        return True
