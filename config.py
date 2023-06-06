@@ -12,3 +12,10 @@ PORT_NUMBER_DD = 8888
 IMPLICITLY_WAIT = 10
 SCRIPT_TIMEOUT = 10
 # PAGELOAD_TIMEOUT = 10
+
+
+#应用配置
+CMB_BIN_PATH = "D:\\FirmBank\\Bin\\Firmbank.exe"
+CMD_DRIVER_PATH = "D:\\caika\\soft\\chromedriver.exe"
+
+ukey_dict = {}

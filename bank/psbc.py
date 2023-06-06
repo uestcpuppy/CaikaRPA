@@ -106,7 +106,7 @@ class psbc(Bank):
     def download(self):
         self.logger.info("开始下载")
         try:
-            WebDriverWait(self.Webdriver, 5, 0.2).until(EC.element_to_be_clickable((By.XPATH,
+            WebDriverWait(self.Webdriver, 10, 0.2).until(EC.element_to_be_clickable((By.XPATH,
                                                                                     '//*[@id="app"]/div/div[2]/div[2]/div[2]/div[2]/div[2]/div/div/div/div[2]/div/div[6]/div[1]/div[2]/div[2]/span')))
         except Exception as e:
             self.logger.info("没有下载按钮, 查询数据为空")

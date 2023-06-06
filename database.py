@@ -570,5 +570,3 @@ def importBankXls(account_id, filePath):
 if __name__ == '__main__':
     # importBankXls("105", "D:\\caika\\BOB_1202.xlsx")
     pass
-
-
