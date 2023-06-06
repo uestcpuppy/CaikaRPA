@@ -14,6 +14,7 @@ from PIL import ImageGrab
 import cv2
 import numpy as np
 import config
+import os
 
 def video_record():   # 录入视频
   global executionId
@@ -126,5 +127,13 @@ if __name__ == '__main__':
     except Exception as e:
         database.updateExecution(executionId, status="FAILED",runEndDatetime=utils.getNowTime())
         bankObj.logger.exception(f"exception: {str(e)}")
+        #发送日志邮件
+        logPath = config.DOWNLOAD_DIR + executionId + "\\rpa.log"
+        if os.path.exists(logPath):
+            with open(logPath, 'r', encoding="utf-8") as f:
+                content = f.read()
+            utils.sendMail("chenxi@caikazx.com", "task_report", content)
+        else:
+            utils.sendMail("chenxi@caikazx.com", "task_report", "task failed, log not found")
     finally:
         flag = True

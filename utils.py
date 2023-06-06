@@ -4,11 +4,8 @@ import subprocess
 import config
 import os
 import datetime
-from decimal import *
-import uiautomation as auto
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad
-from Crypto.Util.Padding import unpad
+import smtplib
+from email.mime.text import MIMEText
 
 ROOT_DOWNLOAD_PATH = config.DATA_ROOT + "download\\"
 
@@ -70,12 +67,35 @@ def getLastLog(filePath, lastCount=500):
     else:
         return "".join(lines[(total-lastCount):])
 
+
+def sendMail(receiver, title, content):
+
+    # 设置SMTP服务器地址、端口号、发件人邮箱账号、发件人邮箱密码、收件人邮箱账号
+    smtp_server = 'smtp.qq.com'
+    smtp_port = 465
+    sender = '443652788@qq.com'
+    sender_password = 'lquucexxepikcaib'
+    receiver = 'chenxi@caikazx.com'
+
+    # 创建邮件内容
+    msg = MIMEText(content, 'plain', 'utf-8')
+    msg['From'] = sender
+    msg['To'] = receiver
+    msg['Subject'] = title
+
+    # 连接到SMTP服务器并登录
+    smtpObj = smtplib.SMTP_SSL(smtp_server, smtp_port)
+    smtpObj.login(sender, sender_password)
+    # 发送邮件
+    smtpObj.sendmail(sender, [receiver], msg.as_string())
+    # 断开与SMTP服务器的连接
+    smtpObj.quit()
+
+
 if __name__ == '__main__':
     s1 = datetime.datetime.strptime("2023-01-09", "%Y-%m-%d").date()
     s2 = datetime.date.today()
-    print(s1)
-    print (s2)
-    print (s1 < s2)
+    sendMail("chenxi@caikazx.com", "test", "hello")
 
 
 
