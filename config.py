@@ -13,6 +13,8 @@ IMPLICITLY_WAIT = 10
 SCRIPT_TIMEOUT = 10
 # PAGELOAD_TIMEOUT = 10
 
+IS_IMAGE_RECORD = True
+
 
 #应用配置
 CMB_BIN_PATH = "D:\\FirmBank\\Bin\\Firmbank.exe"

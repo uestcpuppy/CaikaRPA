@@ -6,6 +6,8 @@ import os
 import datetime
 import smtplib
 from email.mime.text import MIMEText
+import pyscreenshot
+from datetime import datetime
 
 ROOT_DOWNLOAD_PATH = config.DATA_ROOT + "download\\"
 
@@ -91,12 +93,19 @@ def sendMail(receiver, title, content):
     # 断开与SMTP服务器的连接
     smtpObj.quit()
 
+def saveScreenShot(executionId):
+    image = pyscreenshot.grab()
+    targetDir = config.DOWNLOAD_DIR + executionId + "\\"
+    fileName = datetime.now().strftime('%Y-%m-%d_%H_%M_%S_%f')[:-3] + ".png"
+    targetFile = targetDir + fileName
+    image.save(targetFile)
+
 
 if __name__ == '__main__':
-    s1 = datetime.datetime.strptime("2023-01-09", "%Y-%m-%d").date()
-    s2 = datetime.date.today()
-    sendMail("chenxi@caikazx.com", "test", "hello")
-
+    # s1 = datetime.datetime.strptime("2023-01-09", "%Y-%m-%d").date()
+    # s2 = datetime.date.today()
+    # sendMail("chenxi@caikazx.com", "test", "hello")
+    saveScreenShot("1911")
 
 
 
