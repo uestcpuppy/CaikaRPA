@@ -15,88 +15,55 @@ import uiautomation as auto
 import config
 import pyscreenshot
 import subprocess
+from command import retry_on_exception
+import utils
 
 class Bank:
-    def __init__(self):
-        '所有网银处理的基类'
-        # self.BankName = ""
-        # self.BinPath = ""
-        # self.LoginUrl = ""
-        # self.LoginPasswd = ""
-        # self.ConfirmPasswd = ""
-        # # 可能有多个银行账号
-        # self.Accounts = ""
+    def __init__(self, BankName, Browser, LoginUrl, BinPath , LoginPasswd, ConfirmPasswd ,BeginDate, EndDate, BatchId, SlotNum, LoginAccount):
+        #以下为需要传出的必要参数
+        #银行编码
+        self.BankName = BankName
+        #网银地址
+        self.LoginUrl = LoginUrl
+        #银行客户端路径
+        self.BinPath = BinPath
+        #登录密码
+        self.LoginPasswd = LoginPasswd
+        #U盾密码
+        self.ConfirmPasswd = ConfirmPasswd
+        #开始日期
+        self.BeginDate = BeginDate
+        #结束日期
+        self.EndDate = EndDate
+        #执行批次编号
+        self.BatchId = BatchId
+        #Slot编码
+        self.SlotNum = SlotNum
+        #登录账号
+        self.LoginAccount = LoginAccount
+
+        #其它参数
+        #日志对象
+        self.Logger = None
+        #selenium webdriver
+        self.Webdriver = None
+        #IE, Chrome
+        self.Browser = Browser
+        #下载目录
         self.DownloadPath = config.DATA_ROOT
+        #临时下载目录
         self.DownloadTempPath = config.DOWNLOAD_TEMP_DIR
-        # self.BeginDate = ""
-        # self.EndDate = ""
-        # # 1.today 2.lastday 3.last7days 4.last14days 5.last30days
-        # self.DateType = ""
-        # self.SlotNum = 0
-        # self.Logger = ""
-        # #webdriver
-        # self.Webdriver = ""
-        # #IE, Chrome
-        # self.Browser = ""
-        #关闭CCB
-        # self.closeCCBTips()
-        #关闭IE窗口
-        # self.closeIE()
-        #关闭邮储窗口
-        # self.closePCBC()
+        #DDSever地址
         self.DDServer = "127.0.0.1:"+str(config.PORT_NUMBER_DD)
-        if self.Browser != "":
-            self.initWebdriver()
-
-        #获取isBill, isBalance, isAck并初始化
-        execution = database.getExecution(self.BatchId)
-        self.isBill = execution["is_bill"]
-        self.isBalance = execution["is_balance"]
-        self.isAck = execution["is_ack"]
-        #初始化AccountNum
-        self.AccountNum = execution["account_num"]
-
-        self.initDownloadDir()
-        self.initLogger()
-        self.clearTempDownloadDir()
-        self.xlsFileName = ""
-        self.imgFileName = ""
+        #多账号时表示第几个张宏
         self.Index = int(self.SlotNum[-1])
-        self.initUKey()
+
 
     def initDownloadDir(self):
         targetDir = config.DOWNLOAD_DIR + self.BatchId + "\\"
         if not os.path.exists(targetDir):
             os.mkdir(targetDir)
         return
-
-    def setup(self):
-        return True
-    def teardown(self):
-        return True
-    def login(self):
-        return True
-    def query(self):
-        return True
-    def download(self):
-        return True
-    def quit(self):
-        return True
-    def queryBalance(self):
-        pass
-    def run(self):
-        #如果是下载流水
-        if self.isBill:
-            self.login()
-            self.query()
-            self.download()
-            self.quit()
-        #如果是查询余额
-        if self.isBalance:
-            self.login()
-            self.queryBalance()
-            self.quit()
-
     def initLogger(self):
         # 第一步：创建日志器
         logger = logging.getLogger()
@@ -125,6 +92,67 @@ class Bank:
         logger.addHandler(console_handler)
         logger.addHandler(file_handler)
         self.logger = logging
+
+    def clearTempDownloadDir(self):
+        shutil.rmtree(self.DownloadTempPath)
+        os.mkdir(self.DownloadTempPath)
+
+    def initExecutionInfo(self):
+        #获取isBill, isBalance, isAck并初始化
+        execution = database.getExecution(self.BatchId)
+        self.isBill = execution["is_bill"]
+        self.isBalance = execution["is_balance"]
+        self.isAck = execution["is_ack"]
+        #初始化AccountNum
+        self.AccountNum = execution["account_num"]
+
+    def setup(self):
+        #初始化任务信息
+        self.initExecutionInfo()
+        #初始化下载目录
+        self.initDownloadDir()
+        #初始化日志
+        self.initLogger()
+        #清空临时目录
+        self.clearTempDownloadDir()
+        self.initUKey()
+        return True
+    def teardown(self):
+        self.Webdriver.quit()
+        return True
+    def login(self):
+        return True
+    def query(self):
+        return True
+    def download(self):
+        return True
+    def queryBalance(self):
+        pass
+    def run(self):
+        try:
+            self.setup()
+            # 如果是下载流水
+            if self.isBill:
+                self.login()
+                self.query()
+                self.download()
+            # 如果是查询余额
+            if self.isBalance:
+                self.login()
+                self.queryBalance()
+            self.teardown()
+            database.updateExecution(self.BatchId, status="FINISHED", runEndDatetime=utils.getNowTime())
+        except Exception as e:
+            database.updateExecution(self.BatchId, status="FAILED", runEndDatetime=utils.getNowTime())
+            self.logger.exception(f"exception: {str(e)}")
+            # 发送日志邮件
+            logPath = config.DOWNLOAD_DIR + self.BatchId + "\\rpa.log"
+            if os.path.exists(logPath):
+                with open(logPath, 'r', encoding="utf-8") as f:
+                    content = f.read()
+                utils.sendMail("chenxi@caikazx.com", "xiaolidu_task_report", content)
+            else:
+                utils.sendMail("chenxi@caikazx.com", "task_report", "task failed, log not found")
 
     def initWebdriver(self):
         if self.Browser == "Chrome":
@@ -167,7 +195,7 @@ class Bank:
         self.Webdriver.maximize_window()
         self.Webdriver.implicitly_wait(config.IMPLICITLY_WAIT)
         self.Webdriver.set_script_timeout(config.SCRIPT_TIMEOUT)
-        # self.Webdriver.set_page_load_timeout(config.PAGELOAD_TIMEOUT)
+        self.Webdriver.set_page_load_timeout(config.PAGELOAD_TIMEOUT)
 
     def highlight(self,element):
         self.Webdriver.execute_script("arguments[0].setAttribute('style', "
@@ -208,6 +236,30 @@ class Bank:
         url =  "http://"+self.DDServer + "/action=enter"
         ret = requests.get(url)
 
+    @retry_on_exception(max_attempts=15)
+    def processDownloadFileNew(self):
+        tempFile = self.getFirstFileName(self.DownloadTempPath, False)
+        if tempFile == "":
+            raise Exception("tempFileDownload not found")
+        else:
+            #截取扩展名
+            tempIndex = tempFile.find(".")
+            fileExt = tempFile[tempIndex:]
+            targetDir = config.DOWNLOAD_DIR + self.BatchId+"\\"
+            fileName = self.BankName + "_" + self.BatchId + fileExt
+            targetFile = targetDir + fileName
+            shutil.move(self.DownloadTempPath +"\\"+tempFile, targetFile)
+            database.updateExecution(self.BatchId, xlsFilename=fileName)
+            return targetFile
+
+    def download_file_chrome(self):
+        try:
+            downloadFile = self.processDownloadFileNew()
+            self.logger.info("下载成功:" + downloadFile)
+        except Exception as e:
+            self.logger.info("下载失败")
+            self.saveScreenShot()
+
     #此方法用于下载完成后对文件的处理
     def processDownloadFile(self):
         #检查临时文件夹下是否有文件
@@ -237,9 +289,7 @@ class Bank:
     def isFileExist(self, filePath):
         return os.path.exists(filePath)
 
-    def clearTempDownloadDir(self):
-        shutil.rmtree(self.DownloadTempPath)
-        os.mkdir(self.DownloadTempPath)
+
 
     def getFirstFileName(self, fileDir, fullPath=True):
         file_list = os.listdir(fileDir)
@@ -328,8 +378,3 @@ class Bank:
         print(output)
         # 打印输出结果
         return output.decode('gbk')
-
-if __name__ == '__main__':
-    a = Bank()
-    r = a.processDownloadFile()
-    print (r)

@@ -13,13 +13,19 @@ IMPLICITLY_WAIT = 10
 SCRIPT_TIMEOUT = 10
 # PAGELOAD_TIMEOUT = 20
 
+IS_IMAGE_RECORD = True
+
+#应用配置
+CMB_BIN_PATH = "D:\\FirmBank\\Bin\\Firmbank.exe"
+CMD_DRIVER_PATH = "D:\\caika\\soft\\chromedriver.exe"
+
 ukey_dict = {}
 ukey_dict[1] = "9558059000410193"
 ukey_dict[2] = "GSB00029025918"
 ukey_dict[3] = "BJRCBE8113341941"
 ukey_dict[4] = "BJRCBE8314328993"
 ukey_dict[5] = "B06423120"
-ukey_dict[6] = "GSB00005248325"
+ukey_dict[6] = "GSB00033073007"
 ukey_dict[7] = "GSB00010312511"
 ukey_dict[8] = "GSB00010312510"
 ukey_dict[9] = "GSB00024427371"
@@ -40,3 +46,6 @@ ukey_dict[23] = "9558059000395601"
 ukey_dict[24] = "9558059000204935"
 ukey_dict[25] = "9558059001377892"
 ukey_dict[26] = "9558059002320410"
+ukey_dict[27] = "GSB00033073174"
+ukey_dict[28] = "GSB00033073113"
+ukey_dict[29] = "GSB00033073140"

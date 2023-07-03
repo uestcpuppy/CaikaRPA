@@ -13,7 +13,7 @@ ROOT_DOWNLOAD_PATH = config.DATA_ROOT + "download\\"
 
 
 def getNowTime():
-    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 def runTask(executionId, slotNum, beginDate, endDate):
     p = subprocess.Popen("python executor.py "+executionId+" "+slotNum+" "+beginDate+" "+endDate)
@@ -95,7 +95,7 @@ def sendMail(receiver, title, content):
 
 def saveScreenShot(executionId):
     image = pyscreenshot.grab()
-    targetDir = config.DOWNLOAD_DIR + executionId + "\\"
+    targetDir = config.DOWNLOAD_DIR
     fileName = datetime.now().strftime('%Y-%m-%d_%H_%M_%S_%f')[:-3] + ".png"
     targetFile = targetDir + fileName
     image.save(targetFile)
