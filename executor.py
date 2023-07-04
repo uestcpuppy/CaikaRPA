@@ -68,12 +68,6 @@ if __name__ == '__main__':
     slotNum = sys.argv[2]
     beginDate = sys.argv[3]
     endDate = sys.argv[4]
-
-    # executionId = "2827"
-    # slotNum = "1170"
-    # beginDate = "2023-01-01"
-    # endDate = "2023-02-01"
-
     slotInfo = database.getSlotInfo(slotNum)
     login_pwd = base64.b64decode(str.encode(slotInfo["login_pwd"])).decode()
     confirm_pwd = base64.b64decode(str.encode(slotInfo["confirm_pwd"])).decode()
