@@ -351,7 +351,7 @@ class Bank:
 
     def getUKeyLoad(self, certCN, retrytimes, interval):
         while retrytimes > 0:
-            certlist = self.getUKeyInfo()
+            certlist = self.getUKeyInfoShell()
             if certlist.find(certCN) != -1:
                 return True
             retrytimes = retrytimes - 1
@@ -359,16 +359,15 @@ class Bank:
             time.sleep(interval)
         return False
 
-    # def getUKeyInfo(self):
-    #     #certutil -store -user my
-    #     # 设置PowerShell命令
-    #     command = 'ls cert://currentuser/my'
-    #     # 调用PowerShell并执行命令
-    #     process = subprocess.Popen(['powershell', '-command', command], stdout=subprocess.PIPE)
-    #     # 获取命令输出
-    #     output = process.communicate()[0]
-    #     # 打印输出结果
-    #     return output.decode('gbk')
+    def getUKeyInfoShell(self):
+        # 设置PowerShell命令
+        command = 'ls cert://currentuser/my'
+        # 调用PowerShell并执行命令
+        process = subprocess.Popen(['powershell', '-command', command], stdout=subprocess.PIPE)
+        # 获取命令输出
+        output = process.communicate()[0]
+        # 打印输出结果
+        return output.decode('gbk')
 
     def getUKeyInfo(self):
         # 调用PowerShell并执行命令
