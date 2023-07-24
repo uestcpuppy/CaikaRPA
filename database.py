@@ -459,6 +459,28 @@ def exportDetailXls(detailList):
     wb.save(config.DOWNLOAD_TEMP_DIR + "data.xlsx")
     return os.path.exists(filePath)
 
+
+def exporSummaryXls(dataList):
+    final_first_balance = 0
+    final_income = 0
+    final_expense = 0
+    final_last_balance = 0
+
+    wb = openpyxl.load_workbook("summary.xlsx")
+    sheet1 = wb['导出信息']
+    for i in dataList:
+        final_first_balance = final_first_balance + i["first_balance"];
+        final_income = final_income + i["total_income"];
+        final_expense = final_expense + i["total_expense"];
+        final_last_balance = final_last_balance + i["last_balance"];
+        sheet1.append([i["id"],i["short_name"],i["company_name"],i["first_balance"],i["total_income"],i["total_expense"],i["last_balance"]])
+    sheet1.append(["总计", "-", "-", final_first_balance, final_income, final_expense, final_last_balance])
+    filePath = config.DOWNLOAD_TEMP_DIR + "summary.xlsx"
+    if os.path.exists(filePath):
+        os.remove(filePath)
+    wb.save(config.DOWNLOAD_TEMP_DIR + "summary.xlsx")
+    return os.path.exists(filePath)
+
 def importBankXls(account_id, filePath):
 
     accountInfo = getAccountInfo(account_id)

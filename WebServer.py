@@ -271,6 +271,13 @@ class myHandler(BaseHTTPRequestHandler):
             self.dowload(config.DOWNLOAD_TEMP_DIR+"data.xlsx", "application/octet-stream")
             # self.responseJsonData(result)
 
+        if self.path.find("getSummaryExport") !=-1:
+            beginDate = self.getQueryStrParam("BeginDate")
+            endDate = self.getQueryStrParam("EndDate")
+            datalList = database.getCompanyAccountInfo("0", beginDate, endDate)
+            result = database.exporSummaryXls(datalList)
+            self.dowload(config.DOWNLOAD_TEMP_DIR+"summary.xlsx", "application/octet-stream")
+
         if self.path.find("getAllAccountList") !=-1:
             result = database.getAccountListAll()
             self.responseJsonData(result)

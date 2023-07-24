@@ -32,11 +32,15 @@
       <input type="date" id="beginDate" />
       <input type="date" id="endDate" />
       <input type="button" id="query" value="查询"/>
+      <input type="button" id="export" value="导出"/>
       <span id="info"></span>
     </form>
     </div>
   </div>
   <table id="tb"></table>
+  <div style="display:none;">
+    <a id="download" download="summary.xlsx" href="">下载</a>
+  </div>
   </body>
     <script>
 
@@ -205,6 +209,20 @@
                     });
                 });
             }
+
+             $("#export").click(function(){
+                BeginDate = $("#beginDate").val()
+                EndDate = $("#endDate").val()
+                var AccountIds = new Array()
+
+                if(BeginDate==""||EndDate==""){
+                    $("#info").text("请填写完整").show().delay(3000).fadeOut();
+                    return
+                }
+                $("#download").attr("href", "/getSummaryExport&BeginDate="+BeginDate+"&EndDate="+EndDate);
+                $("#download")[0].click()
+
+            })
 
         });
     </script>
