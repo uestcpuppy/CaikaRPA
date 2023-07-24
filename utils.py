@@ -100,6 +100,20 @@ def saveScreenShot(executionId):
     targetFile = targetDir + fileName
     image.save(targetFile)
 
+def RemoveAllCertsShell():
+    # 设置PowerShell命令
+    command = """Get-ChildItem cert:\CurrentUser\My | 
+               ForEach-Object {
+               $store = Get-Item $_.PSParentPath 
+               $store.Open('ReadWrite') 
+               $store.Remove($_) 
+               $store.Close()}"""
+
+    # 调用PowerShell并执行命令
+    process = subprocess.Popen(['powershell', '-command', command], stdout=subprocess.PIPE)
+    # 获取命令输出
+    output = process.communicate()[0]
+    return len(output) == 0
 
 if __name__ == '__main__':
     # s1 = datetime.datetime.strptime("2023-01-09", "%Y-%m-%d").date()

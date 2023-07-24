@@ -85,6 +85,9 @@ if __name__ == '__main__':
             th = threading.Thread(target=image_record)
             th.start()
 
+        #删除所有证书
+        utils.RemoveAllCertsShell()
+
         # 调用usb hub
         usb = usbhub()
         # 打开指定的端口

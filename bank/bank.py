@@ -290,7 +290,6 @@ class Bank:
         return os.path.exists(filePath)
 
 
-
     def getFirstFileName(self, fileDir, fullPath=True):
         file_list = os.listdir(fileDir)
         if len(file_list) == 1 and file_list[0].find(".tmp")==-1:
