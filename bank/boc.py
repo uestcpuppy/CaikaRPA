@@ -7,8 +7,10 @@ import uiautomation
 import threading
 from DD.DDLib import DDLib
 import os
-import ait
 import database
+import config_request
+import config_account
+import json
 
 
 def worker(pwd):
@@ -23,40 +25,33 @@ def worker(pwd):
     dd.dd_dll.DD_key(815, 1)
     dd.dd_dll.DD_key(815, 2)
 
-
 def worker2(webdriver):
-    webdriver.find_element(By.XPATH,
-                           '//*[@id="app"]/DIV/DIV[3]/SECTION/DIV[1]/DIV[2]/DIV/DIV/DIV[2]/DIV[1]/DIV/DIV[2]/DIV[1]/DIV/DIV/DIV[2]/DIV/DIV/DIV[1]/A/DIV').click()
+    webdriver.find_element(By.XPATH, '//*[@id="app"]/DIV/DIV[3]/SECTION/DIV[1]/DIV[2]/DIV/DIV/DIV[2]/DIV[1]/DIV/DIV[2]/DIV[1]/DIV/DIV/DIV[2]/DIV/DIV/DIV[1]/A/DIV').click()
 
 
 class boc(Bank):
     def __init__(self, LoginPasswd, ConfirmPasswd, BeginDate, EndDate, BatchId, SlotNum, LoginAccount):
-        self.BankName = "BOC"
-        self.BinPath = ""
-        self.LoginUrl = "https://netc2.igtb.bankofchina.com"
-        self.LoginPasswd = LoginPasswd
-        self.ConfirmPasswd = ConfirmPasswd
-        # 可能有多个银行账号
-        self.Account = LoginAccount
-        self.DownloadPath = ""
-        self.BeginDate = BeginDate
-        self.EndDate = EndDate
-        self.SlotNum = 0
-        self.Logger = ""
-        self.Browser = "IeInEdge"
-        self.BatchId = BatchId
-        self.SlotNum = SlotNum
-        super().__init__()
+        super().__init__(BankName="BOC",
+                         Browser="IeInEdge",
+                         LoginUrl="https://netc2.igtb.bankofchina.com",
+                         BinPath="",
+                         LoginPasswd=LoginPasswd,
+                         ConfirmPasswd=ConfirmPasswd,
+                         BeginDate=BeginDate,
+                         EndDate=EndDate,
+                         BatchId=BatchId,
+                         SlotNum=SlotNum,
+                         LoginAccount=LoginAccount)
 
     def login(self):
         uiautomation.uiautomation.SetGlobalSearchTimeout(15)
-        self.logger.info("启动异步线程确认证书,输入密码,按回车")
-        t = threading.Thread(target=worker, args=(self.ConfirmPasswd,), daemon=True)
-        t.start()
+        # self.logger.info("启动异步线程确认证书,输入密码,按回车")
+        # t = threading.Thread(target=worker, args=(self.ConfirmPasswd,), daemon=True)
+        # t.start()
+        self.initWebdriver()
         self.logger.info("开始登录 " + self.BankName + " " + self.LoginUrl)
         self.Webdriver.set_page_load_timeout(20)
         self.Webdriver.get(self.LoginUrl)
-
         retrytimes = 15
         while retrytimes > 0:
             win = uiautomation.WindowControl(searchDepth=1, SubName='企业网银')
@@ -66,7 +61,6 @@ class boc(Bank):
                 break
             retrytimes = retrytimes - 1
             time.sleep(1)
-
         self.logger.info("输入登录密码")
         self.sendkeysRemote(self.LoginPasswd)
         time.sleep(1)
@@ -77,38 +71,23 @@ class boc(Bank):
         return True
 
     def query(self):
-        # time.sleep(3000)
-        self.logger.info("开始查询")
-        self.logger.info("跳转到下载申请页")
-        self.Webdriver.execute_script('window.location = "/#/work-bench/download-center/download-apply/index"')
-        self.Webdriver.execute_script('window.location.reload()')
-        # time.sleep(8)
-        WebDriverWait(self.Webdriver, 15, 0.2).until(
-            EC.url_to_be("https://netc2.igtb.bankofchina.com/#/work-bench/download-center/download-apply/index"))
-        self.logger.info("点击交易Checkbox")
-        self.Webdriver.find_element(By.XPATH,
-                                    '//*[@id="app"]/DIV/DIV[3]/SECTION/DIV[1]/DIV[3]/DIV/DIV/DIV[2]/DIV[1]/DIV/DIV[1]/DIV[2]/DIV/LABEL[3]/SPAN[1]/SPAN').click()
-        self.logger.info("选择最近半年")
-        self.Webdriver.execute_script('document.querySelector("input[value=\\"sixMonth\\"]").click()')
-        self.logger.info("点击文件类型下拉框")
-        self.Webdriver.find_element(By.XPATH,
-                                    '//*[@id="app"]/DIV/DIV[3]/SECTION/DIV[1]/DIV[3]/DIV/DIV/DIV[2]/DIV[1]/DIV/DIV[1]/DIV[3]/DIV[3]/DIV/DIV[1]/INPUT').click()
-        self.logger.info("文件类型选择excel")
-        # self.Webdriver.execute_script('document.querySelectorAll("ul.bfe-scrollbar__view.bfe-select-dropdown__list span")[22].click()')
-        self.Webdriver.find_element(By.XPATH, '//span[text()="EXCEL"]').click()
-
-        # time.sleep(3000)
-        # time.sleep(1000)
-        # self.logger.info("选择所有账户Checkbox")
-        # self.Webdriver.find_element(By.XPATH, '//*[@id="app"]/DIV/DIV[3]/SECTION/DIV[1]/DIV[3]/DIV/DIV/DIV[2]/DIV[1]/DIV/DIV[2]/DIV[2]/DIV[2]/TABLE/THEAD/TR/TH[1]/DIV/DIV/SPAN/LABEL/SPAN/SPAN').click()
-        self.logger.info("选择账户")
-        self.Webdriver.execute_script(
-            'document.querySelectorAll("input[type=checkbox]")[' + str(self.Index + 4) + '].click()')
-        self.logger.info("点击生成下载文件按钮")
-        self.Webdriver.find_element(By.XPATH,
-                                    '//*[@id="app"]/DIV/DIV[3]/SECTION/DIV[1]/DIV[3]/DIV/DIV/DIV[2]/DIV[1]/DIV/DIV[3]/DIV/DIV/DIV/DIV/BUTTON').click()
-        self.logger.info("完成查询")
-        # time.sleep(1000)
+        self.logger.info("开始申请流水下载")
+        data = config_request.boc_request_detaillist_apply
+        data["params"]["actIdList"][0]["actId"] = config_account.config[self.AccountNum]["actId"]
+        data["params"]["startDate"] = self.BeginDate.replace("-", "/")
+        data["params"]["endDate"] = self.EndDate.replace("-", "/")
+        result = self.sendHttpRequest("post", "/igtb-web/_bfwajax.do?method=ActTransQueryDownload&_locale=zh_CN", "json="+json.dumps(data))
+        if result["ret"] and result["response"] != "":
+            response_data = json.loads(result["response"])
+            self.logger.info(result["response"])
+            biz_result = response_data["result"]["result"]
+            if biz_result == "Y":
+                self.logger.info("申请流水下载成功")
+            else:
+                raise Exception("detaillist apply failed!")
+        else:
+            self.logger.info("申请流水下载失败")
+            raise Exception("detaillist apply failed!")
         return True
 
     def download(self):
@@ -136,45 +115,25 @@ class boc(Bank):
         return True
 
     def queryBalance(self):
-
-        isFound = False
-        tempAccount = ""
-        tempBalance = ""
-
-        # 等待整个页面加载完成
         self.logger.info("等待页面加载完成")
         time.sleep(5)
-        # wait = WebDriverWait(self.Webdriver, 10)
-        # element = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.dashboard-card__body')))
-        # self.logger.info("页面加载成功")
+        # self.logger.info("等待一级菜单加载完成")
+        # WebDriverWait(self.Webdriver, 20, 0.2).until(
+        #     EC.visibility_of_element_located((By.CSS_SELECTOR, "#oneNav > a:nth-child(2)")))
+        self.logger.info("执行js")
+        data = config_request.boc_request_balance
+        data["params"]["accountIdList"][0]["actId"] = config_account.config[self.AccountNum]["actId"]
+        result = self.sendHttpRequest("post", "/igtb-web/_bfwajax.do?method=ActTodayBalanceQuery&_locale=zh_CN", "json="+json.dumps(data))
 
-        if self.Webdriver.page_source.find("actNum") != -1:
-            self.logger.info("多账户")
-            accNums = self.Webdriver.find_elements(By.CSS_SELECTOR, 'div.actNum')
-            accBalances = self.Webdriver.find_elements(By.CSS_SELECTOR, "div.cards span:nth-child(2)")
-            # 多账号的情况
-            for index, element in enumerate(accNums):
-                if element.text.find(self.AccountNum) != -1:
-                    tempAccount = self.AccountNum
-                    tempBalance = accBalances[index].text.replace(",", "").strip()
-                    isFound = True
-                    break
+        if result["ret"] and result["response"] != "":
+            response_data = json.loads(result["response"])
+            self.logger.info(result["response"])
+            balance = response_data["result"]["List"][0]["ATB"]["avlBalance"]
+            self.logger.info("查询余额成功:" + balance)
+            database.updateExecution(executionId=self.BatchId, balance=balance)
         else:
-            self.logger.info("单账户")
-            # 单账号的情况
-            tempElements = self.Webdriver.find_elements(By.CSS_SELECTOR, "div.one-show div.text span")
-            if tempElements[2].text.find(self.AccountNum) != -1:
-                isFound = True
-                tempAccount = self.AccountNum
-                tempBalance = tempElements[1].text.replace(",", "").strip()
-
-        if isFound:
-            self.logger.info("查询余额成功:" + tempBalance)
-            database.updateExecution(executionId=self.BatchId, balance=tempBalance)
-        else:
-            self.logger.info("查询余额失败: 未找到对应账户数据")
-            raise Exception("queryBalance failed")
-
+            self.logger.info("查询余额失败")
+            raise Exception("queryBalance failed!")
         return True
 
     def quit(self):

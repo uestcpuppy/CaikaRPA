@@ -30,11 +30,6 @@ class icbc(Bank):
     self.logger.info("开始登录 "+self.BankName+" "+ self.LoginUrl)
     self.Webdriver.get(self.LoginUrl)
 
-    # time.sleep(10)
-
-    # self.sendkeysRemote(self.ConfirmPasswd)
-    # time.sleep(200)
-
     #切换frame
     WebDriverWait(self.Webdriver, 10, 0.2).until(
         EC.frame_to_be_available_and_switch_to_it((By.NAME, "indexFrame")))
@@ -115,9 +110,3 @@ class icbc(Bank):
   def quit(self):
       self.Webdriver.close()
       return True
-  # def run(self):
-  #     self.login()
-  #     self.query()
-  #     self.download()
-  #     time.sleep(5)
-  #     self.quit()

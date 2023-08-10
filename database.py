@@ -11,7 +11,7 @@ def getDb():
         "host":"localhost",
         "user":"root",
         "password":"caika2020",
-        "database":"caika_goski",
+        "database":"caika",
         "cursorclass": pymysql.cursors.DictCursor
     }
     db = pymysql.connect(**config)
@@ -55,7 +55,7 @@ def getQueryResultOne(sql):
         return None
 
 def getSlotList():
-    sql = "SELECT s.*, e.status, e.balance, c.name as company_name, e.query_begin_date,e.query_end_date,e.xls_filename,e.screenshot_filename,a.short_name,b.`name` FROM slot as s " \
+    sql = "SELECT s.*, e.status, c.name as company_name, e.query_begin_date,e.query_end_date,e.xls_filename,e.screenshot_filename,a.short_name,b.`name` FROM slot as s " \
           "LEFT JOIN execution as e ON s.execution_id = e.id " \
           "LEFT JOIN account as a ON s.account_id = a.id " \
           "LEFT JOIN company as c ON a.company_id = c.id " \
@@ -65,14 +65,14 @@ def getSlotList():
     return res
 
 def getSlotInfo(slotNum):
-    sql = "SELECT s.*,a.*,e.balance,e.status, e.query_begin_date,e.query_end_date,e.xls_filename,e.screenshot_filename,b.`name`,b.short_name as bank FROM slot as s " \
+    sql = "SELECT s.*,a.*,e.status, e.query_begin_date,e.query_end_date,e.xls_filename,e.screenshot_filename,b.`name`,b.short_name as bank FROM slot as s " \
           "LEFT JOIN execution as e ON s.execution_id = e.id " \
           "LEFT JOIN account as a ON s.account_id = a.id " \
           "LEFT JOIN bank as b ON a.bank_id = b.id where s.slot_num="+slotNum
     res = getQueryResultOne(sql)
     return res
 
-def updateExecution(executionId, status="",runEndDatetime="",xlsFilename="",imgFilename="", balance=""):
+def updateExecution(executionId, status="",runEndDatetime="",xlsFilename="",imgFilename=""):
     sql = "UPDATE execution SET id = id"
     if status!="":
         sql = sql + ",status = '"+status+"'"
@@ -82,8 +82,6 @@ def updateExecution(executionId, status="",runEndDatetime="",xlsFilename="",imgF
         sql = sql + ",xls_filename = '"+xlsFilename+"'"
     if imgFilename!="":
         sql = sql + ",screenshot_filename = '"+imgFilename+"'"
-    if balance!="":
-        sql = sql + ",balance = '"+balance+"'"
     sql = sql + " WHERE id = "+executionId
     return query(sql)
 
@@ -135,14 +133,14 @@ def removeSlot(slotNum):
     sql = "delete from slot where slot_num = "+slotNum
     return query(sql)
 
-def createTemplate(templateName,bankId,sheetName, skipFirstRows, skipLastRows,transactionTime,income,expense,balance,customerAccountName,customerAccountNum,customerBankName,transactionId,summary,timeFormat,order,field1,field2,field3):
+def createTemplate(templateName,bankId,sheetName, skipFirstRows, skipLastRows,transactionTime,income,expense,balance,customerAccountName,customerAccountNum,customerBankName,transactionId,summary,timeFormat,order):
     # 1. 创建数据库连接对象
     con = getDb()
     # 2. 通过连接对象获取游标
     with con.cursor() as cursor:
             try:
                 # 3. 通过游标执行SQL并获得执行结果
-                sql = "INSERT INTO `template` VALUES (NULL, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')"%(templateName,
+                sql = "INSERT INTO `template` VALUES (NULL, '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')"%(templateName,
                                                                                                                                       bankId,
                                                                                                                                       sheetName,
                                                                                                                                       skipFirstRows,
@@ -157,10 +155,7 @@ def createTemplate(templateName,bankId,sheetName, skipFirstRows, skipLastRows,tr
                                                                                                                                       transactionId,
                                                                                                                                       summary,
                                                                                                                                       timeFormat,
-                                                                                                                                      order,
-                                                                                                                                      field1,
-                                                                                                                                      field2,
-                                                                                                                                      field3)
+                                                                                                                                      order)
                 result = cursor.execute(sql)
                 # 4. 操作成功提交事务
                 con.commit()
@@ -172,7 +167,7 @@ def createTemplate(templateName,bankId,sheetName, skipFirstRows, skipLastRows,tr
     return True
 
 
-def updateTemplate(id,templateName,bankId,sheetName,skipFirstRows,skipLastRows,transactionTime,income,expense,balance,customerAccountName,customerAccountNum,customerBankName,transactionId,summary,timeFormat,order,field1,field2,field3):
+def updateTemplate(id,templateName,bankId,sheetName,skipFirstRows,skipLastRows,transactionTime,income,expense,balance,customerAccountName,customerAccountNum,customerBankName,transactionId,summary,timeFormat,order):
     sql = "UPDATE template SET name = '"+templateName+"'"
     sql = sql + ",bank_id = '"+bankId+"'"
     sql = sql + ",sheet_name= '"+sheetName+"'"
@@ -189,9 +184,6 @@ def updateTemplate(id,templateName,bankId,sheetName,skipFirstRows,skipLastRows,t
     sql = sql + ",summary = '" + summary + "'"
     sql = sql + ",time_format = '" + timeFormat + "'"
     sql = sql + ",template.order = '" + order + "'"
-    sql = sql + ",field_1 = '" + field1 + "'"
-    sql = sql + ",field_2 = '" + field2 + "'"
-    sql = sql + ",field_3 = '" + field3 + "'"
     sql = sql + " WHERE id = "+id
     return query(sql)
 
@@ -241,9 +233,9 @@ def getBankList():
     sql = "select * from bank order by id asc"
     return getQueryResultAll(sql)
 
-def createExecution(slotNum,accountId,queryBeginDate,queryEndDate,isBill,isBalance,isAck):
+def createExecution(slotNum,accountId,queryBeginDate,queryEndDate):
     runBeginDatetime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    sql = "INSERT INTO `execution` VALUES (NULL,%s,%s,'%s','%s','READY','%s',NULL,'','',NULL,%s,%s,%s)"%(slotNum,accountId,queryBeginDate,queryEndDate,runBeginDatetime,isBill,isBalance,isAck)
+    sql = "INSERT INTO `execution` VALUES (NULL,%s,%s,'%s','%s','READY','%s',NULL,'','')"%(slotNum,accountId,queryBeginDate,queryEndDate,runBeginDatetime)
     res = False
     # 1. 向execution中插入一条数据 2.更新slot的execution_id
     con = getDb()
@@ -256,7 +248,6 @@ def createExecution(slotNum,accountId,queryBeginDate,queryEndDate,isBill,isBalan
             else:
                 insertId = con.insert_id()
                 pid = utils.runTask(str(insertId), slotNum, queryBeginDate, queryEndDate)
-                # pid = 123456
                 if type(pid) == int and pid>0:
                     sql2 = "UPDATE slot SET execution_id = " + str(insertId) + ",pid=" + str(pid) + " where slot_num = " + slotNum
                     result2 = cursor.execute(sql2)
@@ -275,7 +266,7 @@ def createExecution(slotNum,accountId,queryBeginDate,queryEndDate,isBill,isBalan
         con.close()
 
 def getExecution(executionId):
-    sql = "SELECT e.*, a.short_name as account_name, a.account_num from execution as e, account as a where e.account_id = a.id and e.id = "+executionId
+    sql = "SELECT e.*, a.short_name as account_name from execution as e, account as a where e.account_id = a.id and e.id = "+executionId
     return getQueryResultOne(sql)
 
 def getExecutionList(accountId):
@@ -406,7 +397,7 @@ def createUniqueDetailList(detailList):
             for detailDict in detailList:
                 # 3. 通过游标执行SQL并获得执行结果
                 # detail表创建了UNIQUE索引防止数据重复, 插入的时候入遇到重复数据会自动忽略, 没有重复数据才会插入
-                sql = "INSERT IGNORE INTO `detail` VALUES (NULL,%s,'%s',%s,%s,%s,'%s','%s','%s','%s','%s','%s','%s','%s')"%(detailDict["account_id"],
+                sql = "INSERT IGNORE INTO `detail` VALUES (NULL,%s,'%s',%s,%s,%s,'%s','%s','%s','%s','%s')"%(detailDict["account_id"],
                                                                                       detailDict["transaction_time"],
                                                                                       detailDict["income"],
                                                                                       detailDict["expense"],
@@ -415,10 +406,7 @@ def createUniqueDetailList(detailList):
                                                                                       detailDict["customer_account_num"],
                                                                                       detailDict["customer_bank_name"],
                                                                                       detailDict["transaction_id"],
-                                                                                      detailDict["summary"],
-                                                                                      detailDict["field1"],
-                                                                                      detailDict["field2"],
-                                                                                      detailDict["field3"])
+                                                                                      detailDict["summary"])
                 cursor.execute(sql)
                 affectCount = affectCount + con.affected_rows()
             # 4. 操作成功提交事务
@@ -452,7 +440,8 @@ def exportDetailXls(detailList):
             lastAccountNum = accountNum
         #解决导入ERP日期报错的Bug
         date = datetime.datetime.strptime(str(i["transaction_time"])[0:10], '%Y-%m-%d')
-        sheet1.append([companyName,"",accountNum,bankShortName,"","", date.date(),"",i["summary"],i["customer_account_name"],i["customer_account_num"], income,expense])
+        # sheet1.append([companyName,"",accountNum,bankShortName,"","", date.date(),"",i["summary"],i["customer_account_name"],i["customer_account_num"], income,expense])
+        sheet1.append([companyName,"",accountNum,bankShortName,"","", date.date(),i["transaction_id"],i["summary"],i["customer_account_name"],i["customer_account_num"], income,expense, i["balance"]])
     filePath = config.DOWNLOAD_TEMP_DIR + "data.xlsx"
     if os.path.exists(filePath):
         os.remove(filePath)
@@ -546,18 +535,6 @@ def importBankXls(account_id, filePath):
         else:
             detailDict["customer_bank_name"] = rowData[accountInfo["customer_bank_name"] - 1]
 
-        #中国银行需要特殊处理
-        if(accountInfo["name"] == "中国银行模板"):
-            #如果交易金额大于零, 那么对方账号去付款方账号
-            if(rowData[14 - 1] > 0):
-                detailDict["customer_account_name"] = rowData[6 - 1]
-                detailDict["customer_account_num"] = rowData[5 - 1]
-                detailDict["customer_bank_name"] = rowData[4 - 1]
-            else:
-                detailDict["customer_account_name"] = rowData[10 - 1]
-                detailDict["customer_account_num"] = rowData[9 - 1]
-                detailDict["customer_bank_name"] = rowData[8 - 1]
-
         if(accountInfo["transaction_id"] == 0):
             detailDict["transaction_id"] = ""
         else:
@@ -568,21 +545,6 @@ def importBankXls(account_id, filePath):
         else:
             detailDict["summary"] = rowData[accountInfo["summary"] - 1]
 
-        if(accountInfo["field_1"] == 0):
-            detailDict["field1"] = ""
-        else:
-            detailDict["field1"] = rowData[accountInfo["field_1"] - 1]
-
-        if(accountInfo["field_2"] == 0):
-            detailDict["field2"] = ""
-        else:
-            detailDict["field2"] = rowData[accountInfo["field_2"] - 1]
-
-        if(accountInfo["field_3"] == 0):
-            detailDict["field3"] = ""
-        else:
-            detailDict["field3"] = rowData[accountInfo["field_3"] - 1]
-
         # detailDict["transaction_id"] = rowData[accountInfo["transaction_id"]-1]
         # detailDict["summary"] = rowData[accountInfo["summary"]-1]
         detailList.append(detailDict)
@@ -592,3 +554,5 @@ def importBankXls(account_id, filePath):
 if __name__ == '__main__':
     # importBankXls("105", "D:\\caika\\BOB_1202.xlsx")
     pass
+
+

@@ -17,6 +17,7 @@ import pyscreenshot
 import subprocess
 from command import retry_on_exception
 import utils
+from selenium.webdriver.common.by import By
 
 class Bank:
     def __init__(self, BankName, Browser, LoginUrl, BinPath , LoginPasswd, ConfirmPasswd ,BeginDate, EndDate, BatchId, SlotNum, LoginAccount):
@@ -99,7 +100,11 @@ class Bank:
 
     def initExecutionInfo(self):
         #获取isBill, isBalance, isAck并初始化
-        execution = database.getExecution(self.BatchId)
+        #execution = database.getExecution(self.BatchId)
+
+        #fortest
+        execution = {"is_bill":False, "is_balance":True, "is_ack":False, "account_num":"321720100100053525"}
+
         self.isBill = execution["is_bill"]
         self.isBalance = execution["is_balance"]
         self.isAck = execution["is_ack"]
@@ -140,6 +145,12 @@ class Bank:
             if self.isBalance:
                 self.login()
                 self.queryBalance()
+            #下载回单
+            if self.isAck:
+                self.login()
+                self.ack()
+                self.download()
+
             self.teardown()
             database.updateExecution(self.BatchId, status="FINISHED", runEndDatetime=utils.getNowTime())
         except Exception as e:
@@ -290,6 +301,7 @@ class Bank:
         return os.path.exists(filePath)
 
 
+
     def getFirstFileName(self, fileDir, fullPath=True):
         file_list = os.listdir(fileDir)
         if len(file_list) == 1 and file_list[0].find(".tmp")==-1:
@@ -376,3 +388,21 @@ class Bank:
         print(output)
         # 打印输出结果
         return output.decode('gbk')
+
+
+    def sendHttpRequest(self, method, url, data):
+        try:
+            # 1. 删除input标签
+            self.Webdriver.execute_script(config.JS_REMOVE)
+            # 2. 执行sendHttpAjax
+            js_http_ajax = """sendHttpAjax("%s", "%s", '%s')""" % (method, url, data)
+            self.logger.info(config.JS_COMMON)
+            self.logger.info(js_http_ajax)
+            self.Webdriver.execute_script(config.JS_COMMON + js_http_ajax)
+            # 3.检查并返回结果
+            input_element = self.Webdriver.find_element(By.ID, "hiddenFieldId")
+            response_value = input_element.get_attribute("value")
+            download_value = input_element.get_attribute("download")
+            return {"ret": True, "response": response_value, "download": download_value, "msg": ""}
+        except Exception as e:
+            return {"ret": False, "response": "", "download": "", "msg": str(e)}
